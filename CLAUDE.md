@@ -1,4 +1,4 @@
-/plugin install coding-interview-agent@coding-interview-preparation-agents-marketplace# CLAUDE.md — Rehearse
+# CLAUDE.md — Rehearse
 
 Guidance for Claude (and any AI coding agent) working in this repository. Read this first, then
 [ARCHITECTURE.md](ARCHITECTURE.md) before touching application code.
@@ -366,12 +366,11 @@ Never put `type: coding` rows in `data/questions/`.
 
 Priority themes, roughly in order: DE + leadership question banks → Staff-level rubric with
 Hire/No-Hire verdict ("Reflector", Pydantic structured output) → delivery metrics from Whisper word
-timestamps (pace, fillers, pauses) → "answer again" loop → progress trend chart on the dashboard →
-PySpark (AI-review only) and SQL (Judge0/SQLite) coding tasks → realtime streaming voice → optional
+timestamps (pace, fillers, pauses) → "answer again" loop → PySpark (AI-review only) and SQL (Judge0/SQLite) coding tasks → realtime streaming voice → optional
 Ollama fallback model → branding leftovers (favicon, DB rename).
 
-**Next planned session:** build the "Export transcript" option on the theory review page and
-design the owner's second-opinion Claude skill together (see §14).
+**Next planned session:** design the owner's second-opinion Claude skill (see §14). The
+"Export transcript" it builds on is done.
 
 When implementing any of these, check TODO.md for the exact scope, keep the change self-contained
 in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and tick the item.
