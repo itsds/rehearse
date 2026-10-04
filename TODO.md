@@ -29,6 +29,13 @@ Tick items off as they land. Keep each change small and focused so upstream Gril
 - [ ] Realtime natural voice (streaming speech-to-text / text-to-speech pipeline)
 - [ ] Optional: switch to Whisper large on the GPU for better accuracy
 
+## Camera and video
+
+Order agreed 2026-10-04: self-view → recording → separate review app → delivery metrics (see Evaluation and feedback).
+
+- [ ] Phase 2 — record and replay (only if self-view proves useful): opt-in per rehearsal, one clip per answer round, `data/recordings/<interview_id>/` with a `manifest.json` (questions, timings, transcript, Whisper word timings — no scores/feedback), a short gaze-calibration clip, replay on the theory review page, delete option, gitignore + dockerignore
+- [ ] Separate local video-review app (own repo, not part of Rehearse): MediaPipe eye contact / look-aways, framing and lighting, rough body-language numbers, timeline of "moments to watch"; reads `data/recordings/` read-only, no LLM required
+
 ## Models
 
 - [ ] Optional: Ollama as an offline backup interviewer model (7–8B fits alongside Whisper in 8 GB VRAM)
@@ -56,4 +63,5 @@ Tick items off as they land. Keep each change small and focused so upstream Gril
 - [x] Enable NVIDIA GPU for Whisper (CUDA libraries in the image, GPU reservation in compose)
 - [x] Rebrand UI to "Rehearse — By DS"
 - [x] "Export transcript" button on the theory review page — downloads questions, follow-ups and my answers as Markdown, with Rehearse's scores and feedback left out, ready to paste into another AI for a blind second-opinion grade
+- [x] Camera self-view on interview pages (Phase 1): local preview only, off by default, mirror toggle
 - [x] Progress trend chart across rehearsals on the dashboard, plus a per-topic `/progress` page (average first-answer score per rehearsal)

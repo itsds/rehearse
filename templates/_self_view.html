@@ -1,0 +1,19 @@
+{# Camera self-view during an interview. Local preview only: the stream never
+   leaves the browser, nothing is recorded or uploaded. Behaviour lives in
+   static/js/self_view.js. #}
+<section class="self-view" data-self-view aria-label="Camera self-view">
+    <div class="self-view__header">
+        <span class="self-view__title">Self-view</span>
+        <button type="button" class="btn btn-outline btn-sm" data-self-view-toggle aria-pressed="false">Camera on</button>
+    </div>
+    <div class="self-view__frame" data-self-view-frame hidden>
+        <video class="self-view__video self-view__video--mirrored" data-self-view-video
+               autoplay muted playsinline aria-label="Your camera preview"></video>
+    </div>
+    <label class="self-view__option" data-self-view-mirror-row hidden>
+        <input type="checkbox" data-self-view-mirror checked>
+        Mirror view <span class="self-view__hint">(untick to see what the interviewer sees)</span>
+    </label>
+    <p class="self-view__status" data-self-view-status role="status" hidden></p>
+    <p class="self-view__note">Preview only: stays in your browser, nothing is recorded.</p>
+</section>

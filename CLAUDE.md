@@ -305,6 +305,7 @@ Never put `type: coding` rows in `data/questions/`.
 | Dashboard | `GET /` → `interview/queries/dashboard.py`, `templates/dashboard.html` |
 | Progress trend | `GET /` card + `GET /progress` → `interview/queries/progress.py`, `domain/rules/progress_trend.py`, `templates/_trend_chart.html` |
 | Export transcript | `GET /interview/{id}/theory/export.md` → `theory/support/transcript_export.py` |
+| Camera self-view | `templates/_self_view.html` (theory sidebar, coding brief) + `static/js/self_view.js` — browser-only, no server code |
 
 ### How theory answers are scored today
 
@@ -370,7 +371,8 @@ timestamps (pace, fillers, pauses) → "answer again" loop → PySpark (AI-revie
 Ollama fallback model → branding leftovers (favicon, DB rename).
 
 **Next planned session:** design the owner's second-opinion Claude skill (see §14). The
-"Export transcript" it builds on is done.
+"Export transcript" it builds on is done. Camera track, in the owner's order: Phase 2 recording
+(only if self-view proves useful) → separate video-review app → delivery metrics (see §14).
 
 When implementing any of these, check TODO.md for the exact scope, keep the change self-contained
 in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and tick the item.
@@ -395,6 +397,18 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
 - Later (Reflector): Claude could become an in-app judge via Anthropic's OpenAI-compatible endpoint
   (`https://api.anthropic.com/v1/`), which fits the existing `openai-compatible` adapter; needs a paid
   API key (separate from a Claude subscription).
+
+**2026-10-04 — camera and video**
+- Phase 1 **self-view** shipped: browser-only preview (`getUserMedia` video, no audio, so it never
+  competes with dictation for the mic), off by default, nothing stored or uploaded.
+- Phase 2 **recording** (later, opt-in): per-round clips + `manifest.json` under `data/recordings/`
+  as a stable contract for other tools; Rehearse scores/feedback stay out of the manifest (no anchoring).
+- **Video analysis lives in a separate local app**, not in Rehearse: MediaPipe geometry (eye contact,
+  look-aways, framing, rough posture/fidgeting), CPU only, no LLM needed. A gaze-calibration clip is
+  required because the webcam sits above the screen.
+- **Not doing:** emotion / "confidence" reading from faces or holistic video-LLM judging — unreliable.
+- Delivery metrics (Whisper word timestamps) come after the video work, by the owner's choice; when
+  built, they stay separate from the technical score (rule 8).
 
 **Licensing notes (relevant before going private / commercial)**
 - Apache-2.0 (GrillKit) allows private use, modification and commercial sale without publishing source;

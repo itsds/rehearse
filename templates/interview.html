@@ -77,6 +77,10 @@
             </dl>
         </div>
 
+        {% if interview.status == "active" %}
+        {% include "_self_view.html" %}
+        {% endif %}
+
         <div class="interview-actions" id="sidebar-actions">
             <a href="/" class="btn btn-outline">Back to Dashboard</a>
             {% if interview.status == "active" %}
@@ -190,6 +194,9 @@
 {% block scripts %}
 {% if session_mode %}
 <script src="/static/js/session_phases.js?v={{ static_version('js/session_phases.js') }}"></script>
+{% if interview.status == "active" %}
+<script src="/static/js/self_view.js?v={{ static_version('js/self_view.js') }}"></script>
+{% endif %}
 <script>
 window.grillkitSessionPhases = {{ {
     "sessionMode": session_mode,

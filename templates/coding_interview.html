@@ -68,6 +68,9 @@
                 </div>
                 <div class="coding-session__assignment" id="coding-task-prompt">{{ coding.current_task.prompt_text }}</div>
             </div>
+            <div class="coding-session__self-view">
+                {% include "_self_view.html" %}
+            </div>
         </aside>
 
         <div class="coding-session__workspace" id="coding-workspace">
@@ -115,6 +118,9 @@
 <script src="/static/js/known_questions.js?v={{ static_version('js/known_questions.js') }}"></script>
 {% if session_mode %}
 <script src="/static/js/session_phases.js?v={{ static_version('js/session_phases.js') }}"></script>
+{% if interview.status == "active" and coding.current_task and not coding.complete %}
+<script src="/static/js/self_view.js?v={{ static_version('js/self_view.js') }}"></script>
+{% endif %}
 <script id="session-phases-json" type="application/json">{{ {
     "sessionMode": session_mode,
     "activePhase": active_phase,

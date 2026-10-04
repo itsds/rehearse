@@ -705,6 +705,14 @@ GET /interview/{id}/coding
 
 Dashboard history links to `/interview/{id}/results` for completed sessions.
 
+### Camera self-view
+
+`templates/_self_view.html` is included on active interview pages (theory sidebar, coding brief
+column) and driven by `static/js/self_view.js`. It requests **video only** via `getUserMedia`, shows
+a mirrored preview (toggle for the interviewer's un-mirrored view), remembers on/off and mirror in
+`localStorage`, and releases the camera on `pagehide`. There is no server-side code: the stream never
+leaves the browser and nothing is stored.
+
 ### Progress trend
 
 `interview/queries/progress.py` (`ProgressTrends`) is computed at read time — nothing is stored.
