@@ -8,6 +8,8 @@ Work in progress is accumulated under `[Unreleased]`; on release, that section b
 
 ### Added
 
+- **Export transcript** — the theory review page of a completed rehearsal has an "Export transcript" button that downloads the questions, follow-ups and your answers as Markdown (`rehearsal-<id>-theory.md`). Rehearse's scores, feedback and rubric points are left out, so the file can be pasted into another AI for a blind second-opinion grade
+
 ### Changed
 
 ### Fixed
