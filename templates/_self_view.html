@@ -1,6 +1,7 @@
-{# Camera self-view during an interview. Local preview only: the stream never
-   leaves the browser, nothing is recorded or uploaded. Behaviour lives in
-   static/js/self_view.js. #}
+{# Camera self-view during an interview, driven by static/js/self_view.js.
+   The camera is always off when the page loads. On the theory page
+   (self_view_recording set) an opt-in "Record this rehearsal" option saves one
+   clip per answer round to data/recordings/ via static/js/recording.js. #}
 <section class="self-view" data-self-view aria-label="Camera self-view">
     <div class="self-view__header">
         <span class="self-view__title">Self-view</span>
@@ -9,11 +10,27 @@
     <div class="self-view__frame" data-self-view-frame hidden>
         <video class="self-view__video self-view__video--mirrored" data-self-view-video
                autoplay muted playsinline aria-label="Your camera preview"></video>
+        <div class="self-view__overlay" data-calibration-overlay hidden aria-live="assertive"></div>
     </div>
     <label class="self-view__option" data-self-view-mirror-row hidden>
         <input type="checkbox" data-self-view-mirror checked>
         Mirror view <span class="self-view__hint">(untick to see what the interviewer sees)</span>
     </label>
     <p class="self-view__status" data-self-view-status role="status" hidden></p>
+    {% if self_view_recording %}
+    <div class="self-view__record" data-recording data-interview-id="{{ interview.id }}">
+        <label class="self-view__option">
+            <input type="checkbox" data-recording-toggle>
+            Record this rehearsal <span class="self-view__hint">(camera + voice, one clip per answer, saved on this computer for replay)</span>
+        </label>
+        <p class="self-view__rec" data-recording-indicator hidden>
+            <span class="self-view__rec-dot" aria-hidden="true"></span>
+            <span data-recording-label>Recording</span>
+        </p>
+        <p class="self-view__status" data-recording-status role="status" hidden></p>
+    </div>
+    <p class="self-view__note">The preview stays in your browser. Nothing is recorded unless you tick “Record this rehearsal”.</p>
+    {% else %}
     <p class="self-view__note">Preview only: stays in your browser, nothing is recorded.</p>
+    {% endif %}
 </section>

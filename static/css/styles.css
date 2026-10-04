@@ -2414,3 +2414,67 @@ textarea.form-control {
     font-size: 0.8125rem;
     color: var(--warning-text);
 }
+
+/* Recorded answer replay (theory review page) */
+.answer-recording {
+    display: block;
+    width: 100%;
+    max-width: 32rem;
+    margin-top: 0.75rem;
+    border-radius: var(--radius);
+    background-color: var(--editor-bg);
+}
+
+/* Recording (theory page self-view) */
+.self-view__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    text-align: center;
+    color: #fff;
+    background: rgb(0 0 0 / 0.55);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.self-view__overlay-count {
+    font-size: 1.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.self-view__record {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.self-view__rec {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.self-view__rec-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background-color: var(--danger);
+    animation: self-view-rec-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes self-view-rec-pulse {
+    50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .self-view__rec-dot { animation: none; }
+}

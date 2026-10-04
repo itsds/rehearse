@@ -16,6 +16,11 @@
         <div class="section-review__actions">
             <a href="{{ results_url }}" class="btn btn-outline">Back to Results</a>
             <a href="/interview/{{ interview_id }}/theory/export.md" class="btn btn-outline" download>Export transcript</a>
+            {% if recordings.has_any %}
+            <button type="button" class="btn btn-outline" data-delete-recordings
+                    data-url="{{ recordings.delete_url }}"
+                    title="Recordings use {{ recordings.total_mb }} MB on this computer">Delete recordings ({{ recordings.total_mb }} MB)</button>
+            {% endif %}
             <a href="/" class="btn btn-outline">Dashboard</a>
         </div>
     </header>
@@ -63,6 +68,11 @@
                 <div class="chat-message answer" data-question-id="{{ answer.question_id }}" data-round="{{ answer.round }}">
                     <div class="chat-bubble answer-bubble">
                         <strong>You:</strong> {{ answer.answer_text }}
+                        {% set clip_url = recordings.clips.get(answer.question_id ~ ":" ~ answer.round) %}
+                        {% if clip_url %}
+                        <video class="answer-recording" controls preload="metadata" src="{{ clip_url }}"
+                               aria-label="Recording of your answer to Q{{ answer.order }}{% if answer.round > 0 %} follow-up {{ answer.round }}{% endif %}"></video>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -86,6 +96,45 @@
 {% endblock %}
 
 {% block scripts %}
+{% if recordings.has_any %}
+<script>
+    // Browser-recorded WebM files carry no total duration, so the player shows
+    // 0:00 and cannot seek. Jumping far ahead once makes the browser scan the
+    // file and learn the real length; then rewind to the start.
+    function fixRecordingDuration(video) {
+        if (video.duration !== Infinity && !Number.isNaN(video.duration)) return;
+        video.addEventListener("timeupdate", function rewind() {
+            video.removeEventListener("timeupdate", rewind);
+            video.currentTime = 0;
+        });
+        video.currentTime = 1e101;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("video.answer-recording").forEach(function (video) {
+            if (video.readyState >= 1) {
+                fixRecordingDuration(video);
+            } else {
+                video.addEventListener("loadedmetadata", function () { fixRecordingDuration(video); }, { once: true });
+            }
+        });
+
+        var button = document.querySelector("[data-delete-recordings]");
+        if (!button) return;
+        button.addEventListener("click", async function () {
+            if (!confirm("Delete all video recordings of this rehearsal? This cannot be undone.")) return;
+            button.disabled = true;
+            var response = await fetch(button.dataset.url, { method: "DELETE" });
+            if (response.ok || response.status === 404) {
+                window.location.reload();
+            } else {
+                button.disabled = false;
+                alert("Could not delete the recordings.");
+            }
+        });
+    });
+</script>
+{% endif %}
 <script src="/static/js/known_questions.js?v={{ static_version('js/known_questions.js') }}"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {

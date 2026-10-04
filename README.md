@@ -2,7 +2,7 @@
 ### by Durga Shanker  
 *Mirror yourself. Rehearse until it shows.*
 
-A voice-first AI mock interviewer for Senior/Staff Data Engineering interviews — practice out loud, get Staff-level feedback with a Hire/No-Hire verdict, and track your progress rehearsal by rehearsal.
+A voice-first AI mock interviewer for Senior/Staff Data Engineering interviews — practice out loud, get scored feedback with follow-up questions, watch yourself on camera, and track your progress rehearsal by rehearsal. (A Staff-level Hire/No-Hire verdict is on the roadmap.)
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -22,6 +22,9 @@ A general chat assistant is flexible, but it does not run an **interview** for y
 | Interview flow | Free-form thread | Fixed session: theory Q&A and/or coding tasks, up to **2 AI follow-ups** per item, **1–5 scoring**, session summary |
 | Live coding practice | Paste code in chat | **Monaco editor**, **Run** against public tests, **Submit** for hidden tests + AI review (needs Judge0) |
 | Practice history | Scattered chats | **Dashboard** with past sessions; open **results** and per-section **review** pages after completion |
+| Progress over time | None | **Progress trend** on the dashboard and a per-topic **Progress** page (average first-answer score per rehearsal) |
+| How you come across | Text only | **Camera self-view** while answering; opt-in **recording** with per-answer replay on the review page |
+| Second opinion | Copy/paste by hand | **Export transcript** — questions and your answers as Markdown, scores left out, ready for a blind grade by another AI |
 | Skip what you already know | You repeat the same prompts | **Known questions** — mark bank items during practice; optionally exclude them when starting a new session |
 | Time pressure | None | Optional **per-round timer** on theory and coding (expired round → 0, move on) |
 | Voice practice | Depends on product | Offline **Whisper** dictation; optional **Piper** question audio; **audio answers** when your model supports it |
@@ -87,6 +90,20 @@ Coding modes need a running [Judge0](https://github.com/judge0/judge0) instance 
 - **Theme** — light theme by default with a **dark mode toggle** (sun/moon) in the navbar; your choice is remembered and follows your system preference on first visit
 - **Deployment** — Docker Compose on port 8000 with `./data` volume for config, DB, and models
 
+### Progress and review
+
+- **Progress trend** — a dashboard card plots your **average first-answer score** (0–5) for each of your last 20 completed rehearsals. Only the first answer to each question counts (follow-ups are counted, not averaged in); a timed-out first answer counts as 0. Hover for details, click a point to open that rehearsal's results.
+- **Progress by topic** (`/progress`, in the top nav) — one chart per track (levels merged, so Kafka junior and senior both count as Kafka) plus a per-category table, weakest first. In a mixed session each question counts toward the overall trend **and** toward its own track. Computed from your existing history — nothing extra is stored.
+- **Export transcript** — on a completed session's theory review page, **Export transcript** downloads `rehearsal-<id>-theory.md`: the questions, follow-ups and your answers. Rehearse's scores, feedback and rubric points are deliberately left out so another AI can grade it **blind**.
+
+### Camera: self-view and recording
+
+- **Self-view** — a **Self-view** panel on the theory and coding interview pages shows your camera while you answer. Untick **Mirror view** to see the un-mirrored image an interviewer gets. The camera is **always off when a page loads**; only the mirror choice is remembered. The preview never leaves your browser.
+- **Record this rehearsal** (theory page, opt-in, unticked on every visit) — records camera + voice **one clip per answer round**, from the moment the question appears until you submit. The first time you tick it, a 10-second **calibration** asks you to look at the camera lens, then at the centre of the screen (used by external gaze analysis).
+- **Replay** — each recorded answer gets a video player on the theory review page, next to your answer. **Delete recordings** removes all of a session's videos.
+- **Where recordings live** — only on your machine, under `data/recordings/<interview_id>/`: `q01-r0.webm` (question 1, main round), `q01-r1.webm` (its first follow-up), `calibration.webm`, and a `manifest.json` (questions, your answer text, clip timings, calibration segments — **no scores or feedback**) that other local tools can read. Expect roughly 5–10 MB per minute of video.
+- **Browser requirement** — browsers allow the camera only on `localhost` or HTTPS, so open Rehearse at `http://localhost:8000`.
+
 ## Quick start
 
 ### Prerequisites
@@ -97,7 +114,7 @@ Coding modes need a running [Judge0](https://github.com/judge0/judge0) instance 
 ### Run with Docker
 
 ```bash
-git clone https://github.com/Rehears/rehearse.git
+git clone https://github.com/itsds/rehearse.git
 cd rehearse
 docker compose up --build
 ```
@@ -111,7 +128,7 @@ Optional **question voice** (Piper TTS, same `app` container):
 3. On the Configuration page, use **Download question voice** when prompted (~60 MB per locale voice from Hugging Face).
 4. Start an interview — questions can play aloud; WAV cache lives under `data/tts-cache/v2/{locale}/`.
 
-`./data` on the host holds SQLite, `config.json`, `llm_models.json`, Whisper/Piper models, and TTS cache. Question banks, templates, and static files ship in the image.
+`./data` on the host holds SQLite, `config.json`, `llm_models.json`, Whisper/Piper models, TTS cache, and your interview recordings (`data/recordings/`, only if you record). Question banks, templates, and static files ship in the image.
 
 If bind-mounted `data/` is not writable (Linux UID mismatch):
 
@@ -133,8 +150,9 @@ On some Linux hosts Judge0 needs **cgroup v1** (`systemd.unified_cgroup_hierarch
 
 1. **Configuration** (`/config`) — add one or more OpenAI-compatible models to the catalog, select an interview model, set interview locale; test connection, then save. Download Whisper (and optionally a Piper voice) from the same page if you want voice features.
 2. **New interview** (`/setup`) — pick a **session mode** (theory only, coding only, or combined). Choose tracks, levels, topics, how many questions/tasks, optional per-round timers, and whether to **exclude known questions**. Coding modes require Judge0 (see **Coding sessions** above).
-3. **Practice** (`/interview/{id}`) — answer theory questions in the chat (type, dictate, or record audio). On coding phases, use the editor: **Run** to check public tests, **Submit** when ready. Combined sessions switch panels automatically when a section ends (or use **Continue to Coding**). End the interview from the sidebar at any time.
-4. **Review** (`/interview/{id}/results`) — after completion, read the overall evaluation, then open **Theory** or **Coding** review for full conversation history, scores, and feedback.
+3. **Practice** (`/interview/{id}`) — answer theory questions in the chat (type, dictate, or record audio). Optionally switch on **Camera on** to watch yourself, and tick **Record this rehearsal** to save a video of each answer. On coding phases, use the editor: **Run** to check public tests, **Submit** when ready. Combined sessions switch panels automatically when a section ends (or use **Continue to Coding**). End the interview from the sidebar at any time.
+4. **Review** (`/interview/{id}/results`) — after completion, read the overall evaluation, then open **Theory** or **Coding** review for full conversation history, scores, and feedback. On the theory review, replay recorded answers and use **Export transcript** for a blind second opinion.
+5. **Track progress** — the dashboard's **Progress trend** card and the **Progress** page show how your first-answer scores move over time, overall and per topic.
 
 Without saved provider config, `/setup` redirects to `/config`.
 
@@ -184,11 +202,19 @@ Optional environment variables (full list in [ARCHITECTURE.md](ARCHITECTURE.md#p
 
 ## Roadmap
 
-**Planned**
+The full backlog lives in [TODO.md](TODO.md). Highlights:
 
-- Session-wide time limit (total interview duration)
-- More question banks and categories
-- Custom question banks, PWA / standalone frontend
+**Next**
+
+- Separate local **video-review app** (its own repo) that reads `data/recordings/`: eye contact and look-aways (MediaPipe, with the calibration clip), framing and lighting, rough body-language numbers, and a timeline of moments to watch — runs on CPU, no LLM needed
+- **Delivery metrics** from Whisper word timestamps: time to first word, long pauses, speaking pace, filler words — kept separate from the technical score
+- Data Engineering question banks (PySpark, Snowflake, pipeline design, data modelling, AWS) and Staff+ leadership banks
+- Staff-level rubric with a **Hire / No-Hire** verdict
+
+**Later**
+
+- "Answer again" loop, PySpark and SQL coding tasks, realtime streaming voice
+- Session-wide time limit, custom question banks, PWA / standalone frontend
 
 ## For developers
 

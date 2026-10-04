@@ -16,6 +16,7 @@ htmlcov
 *.sqlite3
 data/config.json
 data/db
+data/recordings
 tests
 docs
 *.md

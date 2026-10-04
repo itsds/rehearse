@@ -220,6 +220,11 @@ grillkit/
 | GET | `/interview/{interview_id}/results` | `interview/api/results.py` | Completed session hub: overall evaluation + section cards |
 | GET | `/interview/{interview_id}/theory` | `interview/api/results.py` | Theory review: chat history and section feedback (completed only) |
 | GET | `/interview/{interview_id}/theory/export.md` | `interview/api/results.py` | Blind Markdown transcript of the theory Q&A (no scores/feedback) |
+| POST | `/interview/{interview_id}/recordings/clips` | `recording/api/routes.py` | Upload one answer-round clip (multipart: `question_id`, `round`, `started_at`, `duration_ms`, `file`) |
+| POST | `/interview/{interview_id}/recordings/calibration` | `recording/api/routes.py` | Upload the gaze-calibration clip + `segments` JSON |
+| GET | `/interview/{interview_id}/recordings/manifest.json` | `recording/api/routes.py` | Rebuild and return the recording manifest |
+| GET | `/interview/{interview_id}/recordings/{filename}` | `recording/api/routes.py` | Serve a recorded video (range requests for seeking) |
+| DELETE | `/interview/{interview_id}/recordings` | `recording/api/routes.py` | Delete all of a session's recordings |
 | GET | `/interview/{interview_id}/coding` | `interview/api/results.py` | Coding review: per-task accordion with submits and feedback (completed only) |
 | GET | `/interview/{interview_id}/question-audio` | `interview/api/routes.py` | WAV for current theory task (`answer_id` query param) |
 | POST | `/interview/{interview_id}/theory/audio-answer` | `theory/api/routes.py` | Multipart WAV theory answer → NDJSON |
@@ -708,10 +713,35 @@ Dashboard history links to `/interview/{id}/results` for completed sessions.
 ### Camera self-view
 
 `templates/_self_view.html` is included on active interview pages (theory sidebar, coding brief
-column) and driven by `static/js/self_view.js`. It requests **video only** via `getUserMedia`, shows
-a mirrored preview (toggle for the interviewer's un-mirrored view), remembers on/off and mirror in
-`localStorage`, and releases the camera on `pagehide`. There is no server-side code: the stream never
-leaves the browser and nothing is stored.
+column) and driven by `static/js/self_view.js`. The camera is **always off on page load** (only the
+mirror choice is kept in `localStorage`); the preview requests video only via `getUserMedia` and the
+camera is released on `pagehide`. `window.RehearseSelfView` lets recording re-open the same stream
+with the microphone.
+
+### Interview recording (`app/recording/`)
+
+Opt-in per visit on the theory page (`static/js/recording.js`, "Record this rehearsal"). The first
+time it is ticked, a 10 s calibration clip is recorded (5 s looking at the camera, 5 s at the screen
+centre). Then one `MediaRecorder` clip per question round runs from `roundStart` (question or
+follow-up shown) to `roundEnd` (answer submitted, timer expired, interview ended); `interview.html`
+calls these hooks and waits on `flush()` before navigating away. Clips are uploaded to
+`recording/api/routes.py`; `SaveRecording` validates the round against the theory section (read-only
+UoW — no SQLite write lock while streaming to disk), and `RecordingStorage`
+(`shared/infrastructure/gateways/recording_storage.py`) writes atomically under
+`data/recordings/<interview_id>/`:
+
+```
+q01-r0.webm  q01-r0.meta.json     question order 1, main round
+q01-r1.webm  q01-r1.meta.json     its first follow-up
+calibration.webm  calibration.meta.json
+manifest.json                     version 1 — the contract for external tools
+```
+
+`manifest.json` (`recording/domain/models.py`) joins clips with question text and the final answer
+text; it never contains scores, feedback or rubric points. It is rebuilt after every upload and when
+the page flushes at the end of the session (`GET …/manifest.json`). The theory review page
+(`interview/api/results.py`) adds a player per recorded round and a **Delete recordings** button.
+Nothing is stored in the database, so there is no migration.
 
 ### Progress trend
 

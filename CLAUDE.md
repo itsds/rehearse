@@ -119,6 +119,8 @@ app/
   coding/               CODING SECTION: YAML tasks, Monaco UI, Judge0 runs, WS submit, evaluator
   speech/               Whisper model status/download, dictation WebSocket
   question_voice/       Piper TTS status/download, question audio generation
+  recording/            opt-in interview video: per-round clip + calibration upload, manifest.json,
+                        serve/delete; storage gateway in shared/infrastructure/gateways/recording_storage.py
   platform/             /config page: AppConfig + ConfigService (data/config.json),
                         LLM catalog (data/llm_models.json), SpeechRuntimeCoordinator
   shared/               cross-cutting: paths, YAML loaders (questions.py, coding.py), locales,
@@ -215,6 +217,7 @@ data/
   config.json, llm_models.json                user config (gitignored — never commit, contain API keys)
   db/grillkit.db (+ -wal/-shm)                SQLite (gitignored)
   whisper-models/, piper-voices/, tts-cache/, .cache/   downloaded models + caches (gitignored)
+  recordings/<interview_id>/                  opt-in interview videos + manifest.json (gitignored + dockerignored)
 ```
 
 Terminology: **track** = bank slug (`kafka`, `system-design`), **level** = `junior|middle|senior`,
@@ -305,7 +308,9 @@ Never put `type: coding` rows in `data/questions/`.
 | Dashboard | `GET /` → `interview/queries/dashboard.py`, `templates/dashboard.html` |
 | Progress trend | `GET /` card + `GET /progress` → `interview/queries/progress.py`, `domain/rules/progress_trend.py`, `templates/_trend_chart.html` |
 | Export transcript | `GET /interview/{id}/theory/export.md` → `theory/support/transcript_export.py` |
-| Camera self-view | `templates/_self_view.html` (theory sidebar, coding brief) + `static/js/self_view.js` — browser-only, no server code |
+| Camera self-view | `templates/_self_view.html` (theory sidebar, coding brief) + `static/js/self_view.js` — browser-only, always off on page load |
+| Record answers | `static/js/recording.js` (hooks `roundStart`/`roundEnd`/`flush` called from `interview.html`) → `POST /interview/{id}/recordings/clips` → `recording/use_cases/save_recording.py` → `data/recordings/<id>/` + `manifest.json` |
+| Replay / delete recordings | Theory review page (`interview/api/results.py` + `recording/queries/review_clips.py`); `GET /interview/{id}/recordings/{file}`, `DELETE /interview/{id}/recordings` |
 
 ### How theory answers are scored today
 
@@ -327,7 +332,8 @@ Never put `type: coding` rows in `data/questions/`.
 
 - `tests/` mirrors `app/` — put a new test next to the matching package path.
 - Fixtures (`tests/conftest.py`): `client` (TestClient with speech runtime mocked), `isolated_db`
-  (in-memory SQLite, StaticPool), `fake_ai_provider`, `override_ws_ai_provider`.
+  (in-memory SQLite, StaticPool), `fake_ai_provider`, `override_ws_ai_provider`, and the autouse
+  `isolated_recordings_dir` (recordings go to a temp folder, never `data/recordings/`).
 - `tests/fakes.py` → `FakeProvider` + canned evaluation JSON. **Never call a real LLM, Whisper,
   Piper, Hugging Face or Judge0 in tests** — use fakes (`tests/helpers/fake_judge0.py`,
   `tests/helpers/transcription.py`).
@@ -342,7 +348,8 @@ Never put `type: coding` rows in `data/questions/`.
 - The image copies `app/`, `data/questions`, `templates/`, `static/`, `alembic/`. Python/template
   changes need `docker compose up --build`; YAML bank changes only need a container restart
   (they're read through the `./data` mount).
-- `.dockerignore` excludes `tests`, `*.md` (except README), `data/db`, `data/config.json`.
+- `.dockerignore` excludes `tests`, `*.md` (except README), `data/db`, `data/recordings`, `data/config.json`.
+- The camera (self-view, recording) only works on `localhost` or HTTPS — a browser rule, not a Docker one.
 - Healthcheck hits `http://127.0.0.1:8000/`.
 - Speech models and download progress are **per process** — run a single uvicorn worker.
 - Whisper on GPU needs the CUDA wheels in the image + compose `deploy.resources.reservations.devices`;
@@ -351,7 +358,10 @@ Never put `type: coding` rows in `data/questions/`.
 
 ## 12. Things not to do
 
-- Don't commit `data/config.json`, `data/llm_models.json`, `.env`, DB files, or downloaded models.
+- Don't commit `data/config.json`, `data/llm_models.json`, `.env`, DB files, downloaded models, or
+  anything under `data/recordings/` (videos of the owner's face).
+- Don't put Rehearse scores, feedback or rubric points into `manifest.json` or Export transcript —
+  both are deliberately blind.
 - Don't reset/delete the real SQLite DB or drop tables outside an Alembic migration.
 - Don't rename `grillkit` internals or the DB file outside the dedicated backlog task.
 - Don't add a second LLM SDK — extend `AIProvider` / `ProviderFactory` instead.
@@ -370,9 +380,10 @@ Hire/No-Hire verdict ("Reflector", Pydantic structured output) → delivery metr
 timestamps (pace, fillers, pauses) → "answer again" loop → PySpark (AI-review only) and SQL (Judge0/SQLite) coding tasks → realtime streaming voice → optional
 Ollama fallback model → branding leftovers (favicon, DB rename).
 
-**Next planned session:** design the owner's second-opinion Claude skill (see §14). The
-"Export transcript" it builds on is done. Camera track, in the owner's order: Phase 2 recording
-(only if self-view proves useful) → separate video-review app → delivery metrics (see §14).
+**Next planned session:** camera track, in the owner's order — the separate local video-review app
+(own repo, reads `data/recordings/` via `manifest.json`) → delivery metrics (see §14). Self-view and
+recording/replay are done. The second-opinion Claude skill (fed by Export transcript) is tracked in
+TODO.md.
 
 When implementing any of these, check TODO.md for the exact scope, keep the change self-contained
 in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and tick the item.
@@ -399,10 +410,15 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
   API key (separate from a Claude subscription).
 
 **2026-10-04 — camera and video**
-- Phase 1 **self-view** shipped: browser-only preview (`getUserMedia` video, no audio, so it never
-  competes with dictation for the mic), off by default, nothing stored or uploaded.
-- Phase 2 **recording** (later, opt-in): per-round clips + `manifest.json` under `data/recordings/`
-  as a stable contract for other tools; Rehearse scores/feedback stay out of the manifest (no anchoring).
+- Phase 1 **self-view** shipped: browser-only preview (`getUserMedia` video only), nothing stored.
+  Owner's rule: the camera is **always off when a page loads** — never auto-start it, never remember
+  on/off (only the mirror choice is remembered).
+- Phase 2 **recording** shipped (theory page only): opt-in per visit ("Record this rehearsal",
+  unticked on load), one WebM clip per question round (question shown → answer submitted), a 10 s
+  calibration clip (5 s camera, 5 s screen centre), files under `data/recordings/<interview_id>/`
+  named `qNN-rR.webm`, no database tables. `manifest.json` **version 1** is a public contract for
+  external tools: add fields only, never rename/remove without a version bump; it never contains
+  scores, feedback or rubric points. Replay + delete live on the theory review page.
 - **Video analysis lives in a separate local app**, not in Rehearse: MediaPipe geometry (eye contact,
   look-aways, framing, rough posture/fidgeting), CPU only, no LLM needed. A gaze-calibration clip is
   required because the webcam sits above the screen.

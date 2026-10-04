@@ -14,7 +14,17 @@ def test_theory_interview_page_has_self_view(client, isolated_db) -> None:
     assert "data-self-view" in response.text
     assert "data-self-view-toggle" in response.text
     assert "/static/js/self_view.js" in response.text
-    assert "nothing is recorded" in response.text
+    assert "Nothing is recorded unless you tick" in response.text
+
+
+def test_theory_page_offers_opt_in_recording(client, isolated_db) -> None:
+    """The theory page has the unticked recording option and its script."""
+    interview_id = seed_two_question_interview("self-view-recording")
+    response = client.get(f"/interview/{interview_id}")
+    assert "data-recording-toggle" in response.text
+    assert f'data-interview-id="{interview_id}"' in response.text
+    assert "/static/js/recording.js" in response.text
+    assert "data-recording-toggle checked" not in response.text
 
 
 def test_self_view_is_off_until_switched_on(client, isolated_db) -> None:
@@ -32,11 +42,13 @@ def test_coding_interview_page_has_self_view(client, isolated_db) -> None:
     assert response.status_code == 200
     assert "coding-session__self-view" in response.text
     assert "/static/js/self_view.js" in response.text
+    assert "data-recording-toggle" not in response.text
+    assert "nothing is recorded" in response.text
 
 
-def test_self_view_script_is_served(client) -> None:
-    """The self-view script is available as a static asset."""
+def test_self_view_script_never_auto_starts_camera(client) -> None:
+    """The camera is opened only from a click; the on/off state is not stored."""
     response = client.get("/static/js/self_view.js")
     assert response.status_code == 200
     assert "getUserMedia" in response.text
-    assert "audio: false" in response.text
+    assert "enabled" not in response.text

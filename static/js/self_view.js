@@ -1,27 +1,25 @@
 /* Camera self-view for interview pages (templates/_self_view.html).
-   Uses getUserMedia for video only, so it never competes with dictation or
-   spoken answers for the microphone. The stream stays in the browser.
-   Off by default; the on/off and mirror choices are remembered per browser. */
+   The camera is always off when a page loads; only the mirror choice is
+   remembered. The preview is video only. When recording is switched on
+   (static/js/recording.js) the stream is re-opened with the microphone too,
+   through window.RehearseSelfView. Nothing here uploads anything. */
 (function () {
     "use strict";
 
     var STORAGE_KEY = "rehearse-self-view";
+    var PREVIEW_VIDEO = { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: "user" };
+    var RECORDING_VIDEO = { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" };
 
-    function loadPrefs() {
-        var prefs = { enabled: false, mirrored: true };
+    function loadMirrored() {
         try {
             var raw = localStorage.getItem(STORAGE_KEY);
-            if (raw) {
-                var saved = JSON.parse(raw);
-                prefs.enabled = saved.enabled === true;
-                prefs.mirrored = saved.mirrored !== false;
-            }
-        } catch (e) { /* storage blocked: keep defaults */ }
-        return prefs;
+            if (raw) return JSON.parse(raw).mirrored !== false;
+        } catch (e) { /* storage blocked: keep default */ }
+        return true;
     }
 
-    function savePrefs(prefs) {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs)); } catch (e) { /* ignore */ }
+    function saveMirrored(mirrored) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ mirrored: mirrored })); } catch (e) { /* ignore */ }
     }
 
     function errorMessage(error) {
@@ -45,11 +43,11 @@
         var mirrorRow = root.querySelector("[data-self-view-mirror-row]");
         var mirror = root.querySelector("[data-self-view-mirror]");
         var status = root.querySelector("[data-self-view-status]");
-        if (!toggle || !frame || !video || !mirror || !status) return;
+        if (!toggle || !frame || !video || !mirror || !status) return null;
 
-        var prefs = loadPrefs();
+        var mirrored = loadMirrored();
         var stream = null;
-        var starting = false;
+        var pending = null;
 
         function showStatus(text) {
             status.textContent = text || "";
@@ -57,8 +55,8 @@
         }
 
         function applyMirror() {
-            mirror.checked = prefs.mirrored;
-            video.classList.toggle("self-view__video--mirrored", prefs.mirrored);
+            mirror.checked = mirrored;
+            video.classList.toggle("self-view__video--mirrored", mirrored);
         }
 
         function render(on) {
@@ -76,48 +74,52 @@
             video.srcObject = null;
         }
 
-        function stop(remember) {
+        function stop() {
+            var wasOn = !!stream;
             release();
             render(false);
-            if (remember) {
-                prefs.enabled = false;
-                savePrefs(prefs);
-            }
+            if (wasOn) root.dispatchEvent(new CustomEvent("rehearse:camera-off", { bubbles: true }));
         }
 
-        async function start() {
-            if (stream || starting) return;
-            starting = true;
+        function hasAudio() {
+            return !!stream && stream.getAudioTracks().length > 0;
+        }
+
+        // Open (or re-open) the camera. withAudio adds the microphone and a
+        // higher resolution for recording. Concurrent callers share one request.
+        function open(withAudio) {
+            if (stream && (!withAudio || hasAudio())) return Promise.resolve(stream);
+            if (pending) return pending;
             toggle.disabled = true;
             showStatus("");
-            try {
-                var media = await navigator.mediaDevices.getUserMedia({
-                    video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: "user" },
-                    audio: false
-                });
+            pending = navigator.mediaDevices.getUserMedia({
+                video: withAudio ? RECORDING_VIDEO : PREVIEW_VIDEO,
+                audio: withAudio
+                    ? { echoCancellation: true, noiseSuppression: true }
+                    : false
+            }).then(function (media) {
+                release();
                 stream = media;
                 video.srcObject = media;
                 media.getVideoTracks().forEach(function (track) {
                     // Camera unplugged or taken by the OS mid-interview.
                     track.addEventListener("ended", function () {
-                        stop(false);
+                        if (stream !== media) return;
+                        stop();
                         showStatus("The camera stopped.");
                     });
                 });
                 render(true);
-                prefs.enabled = true;
-                savePrefs(prefs);
-            } catch (error) {
-                release();
-                render(false);
-                // Don't auto-retry a failing camera on every page load.
-                prefs.enabled = false;
-                savePrefs(prefs);
+                return media;
+            }).catch(function (error) {
+                if (!stream) render(false);
                 showStatus(errorMessage(error));
-            } finally {
-                starting = false;
+                throw error;
+            }).finally(function () {
+                pending = null;
                 toggle.disabled = false;
-            }
+            });
+            return pending;
         }
 
         applyMirror();
@@ -126,29 +128,42 @@
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             toggle.disabled = true;
             showStatus("Camera is not available here. Browsers allow it only on localhost or HTTPS.");
-            return;
+            return null;
         }
 
         toggle.addEventListener("click", function () {
             if (stream) {
-                stop(true);
+                stop();
             } else {
-                start();
+                open(false).catch(function () { /* message already shown */ });
             }
         });
         mirror.addEventListener("change", function () {
-            prefs.mirrored = mirror.checked;
+            mirrored = mirror.checked;
             applyMirror();
-            savePrefs(prefs);
+            saveMirrored(mirrored);
         });
-        // Turn the camera light off when leaving the page (finishing the
-        // interview navigates away), without forgetting the "on" choice.
+        // Turn the camera light off when leaving the page.
         window.addEventListener("pagehide", release);
 
-        if (prefs.enabled) start();
+        return {
+            root: root,
+            frame: frame,
+            open: open,
+            stop: stop,
+            isOn: function () { return !!stream; },
+            showStatus: showStatus
+        };
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-        document.querySelectorAll("[data-self-view]").forEach(init);
+        var api = null;
+        document.querySelectorAll("[data-self-view]").forEach(function (root) {
+            var instance = init(root);
+            if (!api && instance) api = instance;
+        });
+        // One self-view per page; recording.js drives it through this API.
+        window.RehearseSelfView = api;
+        document.dispatchEvent(new CustomEvent("rehearse:self-view-ready"));
     });
 })();
