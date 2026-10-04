@@ -1,23 +1,22 @@
-# GrillKit
+# Rehearse
+### by Durga Shanker  
+*Mirror yourself. Rehearse until it shows.*
 
-<<<<<<< Updated upstream
 A voice-first AI mock interviewer for Senior/Staff Data Engineering interviews — practice out loud, get Staff-level feedback with a Hire/No-Hire verdict, and track your progress rehearsal by rehearsal.
 
-> Based on [GrillKit](https://github.com/GrillKit/grillkit), licensed under Apache 2.0.
-=======
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-yellow.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Version](https://img.shields.io/badge/version-2026.8.9-blue.svg)](CHANGELOG.md)
 
 Open-source AI technical interview trainer. Practice **theory Q&A**, **live coding**, or **both in one session** from curated YAML banks — with structured scoring, follow-ups, optional voice, and a local results history. Bring your own LLM (cloud or local).
 
-[Why GrillKit](#why-grillkit-not-just-chatgpt) · [Quick start](#quick-start) · [Changelog](CHANGELOG.md) · [Architecture](ARCHITECTURE.md)
+[Why Rehearse](#why-rehearse-not-just-chatgpt) · [Quick start](#quick-start) · [Changelog](CHANGELOG.md) · [Architecture](ARCHITECTURE.md)
 
-## Why GrillKit (not just ChatGPT)
+## Why Rehearse (not just ChatGPT)
 
 A general chat assistant is flexible, but it does not run an **interview** for you.
 
-| What you need | ChatGPT-style chat | GrillKit |
+| What you need | ChatGPT-style chat | Rehearse |
 |---------------|-------------------|----------|
 | Curated technical questions | You prompt each time | Built-in **tracks** (Python, Kafka, System Design, …), **levels**, and **topics** |
 | Interview flow | Free-form thread | Fixed session: theory Q&A and/or coding tasks, up to **2 AI follow-ups** per item, **1–5 scoring**, session summary |
@@ -28,7 +27,7 @@ A general chat assistant is flexible, but it does not run an **interview** for y
 | Voice practice | Depends on product | Offline **Whisper** dictation; optional **Piper** question audio; **audio answers** when your model supports it |
 | Where data lives | Vendor cloud | **Self-hosted**: SQLite + `data/` on your machine; use **Ollama**, vLLM, or any OpenAI-compatible API |
 
-**Structured practice** — You pick tracks, difficulty, and topics; GrillKit builds a question plan and keeps score across the whole session, not a single ad-hoc prompt.
+**Structured practice** — You pick tracks, difficulty, and topics; Rehearse builds a question plan and keeps score across the whole session, not a single ad-hoc prompt.
 
 **Privacy and control** — Run via Docker on your laptop or server. API keys and interview history stay under `./data` (gitignored). No account or subscription required beyond your LLM provider (if you use a cloud model).
 
@@ -98,8 +97,8 @@ Coding modes need a running [Judge0](https://github.com/judge0/judge0) instance 
 ### Run with Docker
 
 ```bash
-git clone https://github.com/GrillKit/grillkit.git
-cd grillkit
+git clone https://github.com/Rehears/rehearse.git
+cd rehearse
 docker compose up --build
 ```
 
@@ -206,4 +205,5 @@ Report vulnerabilities as described in [SECURITY.md](SECURITY.md). Do not open p
 ## License
 
 [Apache License 2.0](LICENSE) (see also [NOTICE](NOTICE))
->>>>>>> Stashed changes
+
+> Based on [GrillKit](https://github.com/GrillKit/grillkit), licensed under Apache 2.0.
