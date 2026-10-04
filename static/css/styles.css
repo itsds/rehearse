@@ -227,6 +227,20 @@ body {
     color: var(--accent-primary);
 }
 
+.navbar-brand--stacked {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    line-height: 1.1;
+}
+
+.navbar-brand__byline {
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+}
+
 .navbar-nav {
     display: flex;
     align-items: center;

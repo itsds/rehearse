@@ -16,6 +16,15 @@ services:
       CODING_ENABLED: ${CODING_ENABLED:-true}
       JUDGE0_URL: ${JUDGE0_URL:-http://judge0-server:2358}
       JUDGE0_AUTH_TOKEN: ${JUDGE0_AUTH_TOKEN:-}
+      WHISPER_DEVICE: ${WHISPER_DEVICE:-cuda}
+      WHISPER_COMPUTE_TYPE: ${WHISPER_COMPUTE_TYPE:-float16}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
 
   judge0-db:

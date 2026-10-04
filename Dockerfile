@@ -22,6 +22,9 @@ COPY static ./static
 
 RUN uv sync --frozen --no-dev
 
+RUN uv pip install --python /app/.venv/bin/python \
+    nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"
+
 # ------------------------------------------------------------------------------
 # Runtime: minimal image with app code and virtualenv from builder
 # ------------------------------------------------------------------------------
@@ -32,6 +35,8 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH"
+
+ENV LD_LIBRARY_PATH="/app/.venv/lib/python3.12/site-packages/nvidia/cublas/lib:/app/.venv/lib/python3.12/site-packages/nvidia/cudnn/lib"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gosu \
