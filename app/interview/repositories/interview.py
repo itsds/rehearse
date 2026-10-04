@@ -70,22 +70,29 @@ class InterviewRepository(SqlAlchemyRepository[Interview]):
             return None
         return interview_from_orm(orm_interview)
 
-    def list_recent_aggregates(self, limit: int = 20) -> list[DomainInterview]:
+    def list_recent_aggregates(
+        self,
+        limit: int = 20,
+        *,
+        status: str | None = None,
+    ) -> list[DomainInterview]:
         """Return recent interview shell aggregates, newest first.
 
         Sort key is ``completed_at`` when set, otherwise ``started_at``.
 
         Args:
             limit: Maximum number of rows to return.
+            status: Optional status filter (e.g. ``completed``); None keeps all.
 
         Returns:
             Domain shell aggregates in dashboard display order.
         """
         sort_key = func.coalesce(Interview.completed_at, Interview.started_at)
+        query = select(Interview)
+        if status is not None:
+            query = query.where(Interview.status == status)
         rows = (
-            self._session.execute(
-                select(Interview).order_by(sort_key.desc()).limit(limit)
-            )
+            self._session.execute(query.order_by(sort_key.desc()).limit(limit))
             .scalars()
             .all()
         )

@@ -90,9 +90,15 @@ class TestAppIntegration:
 
     def test_dashboard_endpoint(self, client):
         """Test that the home page returns the dashboard HTML."""
-        with patch(
-            "app.interview.queries.dashboard.DashboardBuilder.list_rows",
-            return_value=[],
+        with (
+            patch(
+                "app.interview.queries.dashboard.DashboardBuilder.list_rows",
+                return_value=[],
+            ),
+            patch(
+                "app.interview.queries.progress.ProgressTrends.overall_chart",
+                return_value=None,
+            ),
         ):
             response = client.get("/")
         assert response.status_code == 200

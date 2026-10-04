@@ -2147,3 +2147,188 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
 }
+
+/* Progress trend charts (dashboard card + /progress page) */
+.progress-trend-card__header,
+.progress-topic__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.progress-trend-card__aside {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.trend-summary {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.trend-summary__value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-summary__delta {
+    margin-left: 0.5rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-hint {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.trend-chart {
+    position: relative;
+    margin: 0 0 1.25rem;
+    /* viewBox units per CSS pixel; set by progress_trend.js so text and dots
+       keep a constant on-screen size however wide the chart renders. */
+    --trend-scale: 1;
+}
+
+.trend-chart__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.trend-chart__grid {
+    stroke: var(--border-subtle);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.trend-chart__grid--base {
+    stroke: var(--border);
+}
+
+.trend-chart__axis {
+    fill: var(--text-muted);
+    font-size: calc(11px * var(--trend-scale));
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-chart__crosshair {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.trend-chart__crosshair.is-visible {
+    visibility: visible;
+}
+
+.trend-chart__line {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
+.trend-chart__point circle {
+    fill: var(--primary);
+    stroke: var(--surface);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    r: calc(4.5px * var(--trend-scale));
+    transition: r var(--transition-fast);
+}
+
+.trend-chart__point.is-active circle,
+.trend-chart__point:focus-visible circle {
+    r: calc(6.5px * var(--trend-scale));
+}
+
+.trend-chart__point:focus-visible {
+    outline: none;
+}
+
+.trend-chart__point:focus-visible circle {
+    stroke: var(--text-primary);
+}
+
+.trend-chart__tooltip {
+    position: absolute;
+    transform: translate(-50%, calc(-100% - 12px));
+    min-width: 11rem;
+    max-width: 16rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.trend-chart__tooltip-date {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.trend-chart__tooltip-title,
+.trend-chart__tooltip-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.progress-section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0.5rem 0 1rem;
+}
+
+.progress-topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+    gap: 1.5rem;
+}
+
+.progress-topic {
+    margin-bottom: 0;
+}
+
+.progress-topic__header {
+    margin-bottom: 0.75rem;
+}
+
+.progress-topic__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.progress-topic__categories {
+    margin-top: 1rem;
+}
+
+.progress-topic__categories th,
+.progress-topic__categories td {
+    padding: 0.5rem 0.75rem;
+}

@@ -26,9 +26,15 @@ class TestDashboardRouter:
                 },
             )(),
         ]
-        with patch(
-            "app.interview.queries.dashboard.DashboardBuilder.list_rows",
-            return_value=mock_rows,
+        with (
+            patch(
+                "app.interview.queries.dashboard.DashboardBuilder.list_rows",
+                return_value=mock_rows,
+            ),
+            patch(
+                "app.interview.queries.progress.ProgressTrends.overall_chart",
+                return_value=None,
+            ),
         ):
             response = client.get("/")
             assert response.status_code == 200
@@ -37,9 +43,15 @@ class TestDashboardRouter:
 
     def test_dashboard_returns_html(self, client):
         """Dashboard always returns HTML, even without provider config."""
-        with patch(
-            "app.interview.queries.dashboard.DashboardBuilder.list_rows",
-            return_value=[],
+        with (
+            patch(
+                "app.interview.queries.dashboard.DashboardBuilder.list_rows",
+                return_value=[],
+            ),
+            patch(
+                "app.interview.queries.progress.ProgressTrends.overall_chart",
+                return_value=None,
+            ),
         ):
             response = client.get("/")
         assert response.status_code == 200

@@ -9,6 +9,7 @@ Work in progress is accumulated under `[Unreleased]`; on release, that section b
 ### Added
 
 - **Export transcript** — the theory review page of a completed rehearsal has an "Export transcript" button that downloads the questions, follow-ups and your answers as Markdown (`rehearsal-<id>-theory.md`). Rehearse's scores, feedback and rubric points are left out, so the file can be pasted into another AI for a blind second-opinion grade
+- **Progress trend** — the dashboard shows a line chart of your average first-answer score (0–5) across your last 20 completed rehearsals, with a hover tooltip per rehearsal and click-through to its results. A new **Progress** page (`/progress`, also in the top nav) adds one chart per track (levels merged, so Kafka junior and senior count as Kafka) plus a per-category table, weakest first. In mixed sessions each question counts toward the overall trend and toward its own track. Follow-ups are not averaged in and a timed-out first answer counts as 0
 
 ### Changed
 

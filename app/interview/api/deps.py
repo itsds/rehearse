@@ -17,6 +17,7 @@ from app.coding.use_cases.submit_solution import (
 )
 from app.interview.queries.dashboard import InterviewDashboard
 from app.interview.queries.loader import InterviewLoader
+from app.interview.queries.progress import ProgressTrends
 from app.interview.queries.results_page import CompletedSessionResults
 from app.interview.queries.session_page import ActiveSessionPage
 from app.interview.use_cases.complete_session import CompleteInterviewSession
@@ -56,6 +57,11 @@ def get_interview_query(uow: UoWDep) -> InterviewLoader:
 def get_dashboard_builder(uow: UoWDep) -> InterviewDashboard:
     """Build a dashboard builder bound to the request UoW."""
     return InterviewDashboard(uow)
+
+
+def get_progress_trends(uow: UoWDep) -> ProgressTrends:
+    """Build a progress trend query bound to the request UoW."""
+    return ProgressTrends(uow)
 
 
 def get_session_page_service(uow: UoWAutoCommitDep) -> ActiveSessionPage:
@@ -168,6 +174,7 @@ def get_coding_review_service(uow: UoWDep) -> CodingReviewService:
 
 InterviewLoaderDep = Annotated[InterviewLoader, Depends(get_interview_query)]
 InterviewDashboardDep = Annotated[InterviewDashboard, Depends(get_dashboard_builder)]
+ProgressTrendsDep = Annotated[ProgressTrends, Depends(get_progress_trends)]
 ActiveSessionPageDep = Annotated[
     ActiveSessionPage,
     Depends(get_session_page_service),

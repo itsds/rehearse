@@ -303,6 +303,8 @@ Never put `type: coding` rows in `data/questions/`.
 | Completion + overall feedback | `interview/use_cases/complete_session.py`, `interview/domain/session_evaluation.py`, `evaluation_aggregator.py` |
 | Results / review pages | `interview/api/results.py`, `*/queries/review_page.py`, `templates/session_results.html` |
 | Dashboard | `GET /` → `interview/queries/dashboard.py`, `templates/dashboard.html` |
+| Progress trend | `GET /` card + `GET /progress` → `interview/queries/progress.py`, `domain/rules/progress_trend.py`, `templates/_trend_chart.html` |
+| Export transcript | `GET /interview/{id}/theory/export.md` → `theory/support/transcript_export.py` |
 
 ### How theory answers are scored today
 

@@ -81,16 +81,19 @@ grillkit/
 │   │   │   ├── loader.py       # InterviewLoader (was InterviewQuery)
 │   │   │   ├── session_page.py # ActiveSessionPage
 │   │   │   ├── dashboard.py    # InterviewDashboard
+│   │   │   ├── progress.py     # ProgressTrends (first-answer score trends)
 │   │   │   ├── results_page.py # CompletedSessionResults
 │   │   │   ├── review_context.py
 │   │   │   └── projection.py
 │   │   └── support/
-│   │       ├── known_questions.py, bank_text.py
+│   │       ├── known_questions.py, bank_text.py, bank_topics.py
+│   │       ├── trend_chart.py  # Trend points → inline-SVG geometry
 │   │       ├── feedback_prefetch.py
 │   │       └── ai_errors.py
 │   │   └── api/
 │   │       ├── deps.py
 │   │       ├── dashboard.py    # GET /
+│   │       ├── progress.py     # GET /progress
 │   │       ├── setup.py        # GET/POST /setup, cascaded options
 │   │       ├── setup_form.py
 │   │       ├── routes.py       # GET /interview/{id}, question-audio
@@ -192,7 +195,8 @@ grillkit/
 
 | Method | Path | Module | Purpose |
 |--------|------|--------|---------|
-| GET | `/` | `interview/api/dashboard.py` | Interview history (last 20) |
+| GET | `/` | `interview/api/dashboard.py` | Progress trend card + interview history (last 20) |
+| GET | `/progress` | `interview/api/progress.py` | First-answer score trend overall and per track, category table per track |
 | GET | `/setup` | `interview/api/setup.py` | New interview form (redirects to `/config` if unset) |
 | POST | `/setup` | `interview/api/setup.py` | Create interview → redirect `/interview/{id}` |
 | GET | `/setup/options` | `interview/api/setup.py` | Cascaded JSON: theory tracks → levels → categories |
@@ -215,6 +219,7 @@ grillkit/
 | GET | `/interview/{interview_id}` | `interview/api/routes.py` | Active session page (theory and/or coding by phase); completed → redirect `/results` |
 | GET | `/interview/{interview_id}/results` | `interview/api/results.py` | Completed session hub: overall evaluation + section cards |
 | GET | `/interview/{interview_id}/theory` | `interview/api/results.py` | Theory review: chat history and section feedback (completed only) |
+| GET | `/interview/{interview_id}/theory/export.md` | `interview/api/results.py` | Blind Markdown transcript of the theory Q&A (no scores/feedback) |
 | GET | `/interview/{interview_id}/coding` | `interview/api/results.py` | Coding review: per-task accordion with submits and feedback (completed only) |
 | GET | `/interview/{interview_id}/question-audio` | `interview/api/routes.py` | WAV for current theory task (`answer_id` query param) |
 | POST | `/interview/{interview_id}/theory/audio-answer` | `theory/api/routes.py` | Multipart WAV theory answer → NDJSON |
@@ -699,6 +704,18 @@ GET /interview/{id}/coding
 ```
 
 Dashboard history links to `/interview/{id}/results` for completed sessions.
+
+### Progress trend
+
+`interview/queries/progress.py` (`ProgressTrends`) is computed at read time — nothing is stored.
+For each completed session it averages the **round-0 (first-answer) scores** of theory questions:
+follow-up rounds are only counted, a timed-out first answer counts as 0, unscored rounds and
+coding tasks are excluded. Each question is mapped to its bank track and category through the
+cached `support/bank_topics.py` index (levels merged: Kafka junior + senior → `kafka`); IDs missing
+from the banks fall back to the session's single track, else an "Unmapped" group. A question counts
+once in the overall trend and once in its own track. Pure math lives in
+`domain/rules/progress_trend.py`; `support/trend_chart.py` lays points out as inline-SVG geometry
+rendered by `templates/_trend_chart.html`, with hover/tooltip in `static/js/progress_trend.js`.
 
 ## Data Access Pattern
 

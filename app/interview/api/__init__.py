@@ -8,10 +8,18 @@ that the application factory mounts via :func:`app.include_router`.
 
 from fastapi import APIRouter
 
-from app.interview.api import dashboard, known_questions, results, routes, setup
+from app.interview.api import (
+    dashboard,
+    known_questions,
+    progress,
+    results,
+    routes,
+    setup,
+)
 
 router = APIRouter()
 router.include_router(dashboard.router)
+router.include_router(progress.router)
 router.include_router(setup.router)
 router.include_router(known_questions.router)
 router.include_router(routes.router)
