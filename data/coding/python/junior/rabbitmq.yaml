@@ -1,0 +1,76 @@
+category: "RabbitMQ Client"
+track: "python"
+level: "junior"
+
+description: "Implement a RabbitMQ producer in Python with publisher confirms, mandatory flag, and message persistence"
+
+tasks:
+  - id: "rabbitmq-j-001"
+    difficulty: 2
+    tags: ["rabbitmq", "pika", "producer", "confirms", "mandatory", "persistence"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a RabbitMQ producer that sends messages with
+          publisher confirms, mandatory flag, and message persistence.
+
+          Your task:
+          Complete the `publish` method so that it:
+          - Enables publisher confirms on the channel
+          - Declares the exchange as durable topic exchange
+          - Publishes the message with mandatory=True and persistent delivery_mode=2
+          - Returns True if the message was confirmed, False otherwise
+
+          Use `channel.confirm_delivery()` which returns True/False on publish.
+          The connection setup is already done.
+        ru: |
+          Контекст:
+          Вам нужно реализовать RabbitMQ продюсера с подтверждениями издателя,
+          флагом mandatory и персистентностью сообщений.
+
+          Задача:
+          Реализуйте метод `publish` так, чтобы он:
+          - Включал подтверждения канала (publisher confirms)
+          - Объявлял exchange как durable topic exchange
+          - Публиковал сообщение с mandatory=True и delivery_mode=2
+          - Возвращал True, если сообщение подтверждено, иначе False
+
+          Используйте `channel.confirm_delivery()` — возвращает True/False.
+          Подключение к RabbitMQ уже настроено.
+      starter_code: |
+        import pika
+        from pika.spec import BasicProperties
+
+
+        class RabbitProducer:
+            def __init__(self, host="localhost"):
+                self.connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(host)
+                )
+                self.channel = self.connection.channel()
+
+            def publish(self, exchange, routing_key, body):
+                """Publish a persistent message with mandatory flag and publisher confirms.
+                
+                Returns True if confirmed, False otherwise.
+                """
+                # TODO: enable confirms, declare exchange, publish with mandatory=True and delivery_mode=2
+                pass
+
+            def close(self):
+                self.connection.close()
+
+
+        producer = RabbitProducer()
+        success = producer.publish("my_exchange", "key", b"Hello, World!")
+        print(f"Message confirmed: {success}")
+        producer.close()
+    expected_points:
+      - "Calls channel.confirm_delivery() before publishing"
+      - "Declares exchange as durable topic exchange"
+      - "Publishes with mandatory=True"
+      - "Uses BasicProperties with delivery_mode=2 for persistence"
+      - "Returns the result of confirm_delivery-based publish"

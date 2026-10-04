@@ -1,0 +1,136 @@
+category: Kafka Client Production
+track: python
+level: senior
+description: Exactly-once semantics, performance tuning, schema registry, and parallel processing
+questions:
+- id: kpy-s-001
+  type: knowledge
+  difficulty: 4
+  tags:
+  - python
+  - kafka
+  - exactly-once
+  - transactions
+  - eos
+  question:
+    text:
+      en: How does exactly-once semantics work in Kafka with confluent-kafka-python? Explain the difference
+        between idempotent producer and transactional producer/consumer. What configuration is required?
+      ru: Как работает exactly-once семантика в Kafka с confluent-kafka-python? Объясните разницу
+        между идемпотентным продюсером и транзакционным продюсером/консьюмером. Какая конфигурация требуется?
+    code: null
+  follow_ups:
+    en:
+    - What is the role of transactional.id?
+    - How to recover from a failed transaction?
+    - Can we mix transactional and non-transactional producers?
+    ru:
+    - Какова роль transactional.id?
+    - Как восстановиться после неудачной транзакции?
+    - Можно ли смешивать транзакционные и нетранзакционные продюсеры?
+  expected_points:
+  - 'Idempotence: enable.idempotence=true, acks=all, producerId and sequence number'
+  - 'Transactions: transactional.id, init_transactions(), begin/commit/abort_transaction'
+  - Consumer must use isolation.level=read_committed to avoid reading uncommitted messages
+  - Transactions ensure atomic writes to multiple partitions
+  - Transactional producer requires a unique transactional.id and epoch
+  - In Python confluent-kafka supports EOS; kafka-python does not
+- id: kpy-s-002
+  type: knowledge
+  difficulty: 4
+  tags:
+  - python
+  - kafka
+  - performance
+  - tuning
+  - batching
+  - compression
+  question:
+    text:
+      en: How to optimize Python Kafka producer and consumer for maximum throughput and low latency? Discuss batching (batch.size,
+        linger.ms), compression (gzip, snappy, lz4, zstd), fetch parameters, and multi-threading vs multi-processing.
+      ru: Как оптимизировать Python Kafka продюсера и консьюмера для максимальной пропускной способности и низкой задержки?
+        Рассмотрите батчинг (batch.size, linger.ms), сжатие (gzip, snappy, lz4, zstd), параметры fetch, и многопоточность
+        vs многопроцессность.
+    code: null
+  follow_ups:
+    en:
+    - What is the impact of compression on producer CPU and network?
+    - How to choose batch.size and linger.ms?
+    - Python GIL limitations with Kafka consumer?
+    ru:
+    - Какое влияние сжатия на CPU продюсера и сеть?
+    - Как выбрать batch.size и linger.ms?
+    - Ограничения GIL Python при работе с Kafka консьюмером?
+  expected_points:
+  - 'Batching: batch.size (bytes) and linger.ms (wait time) increase throughput at the cost of latency'
+  - 'Compression: lz4 (balanced), zstd (best ratio), gzip (slow), snappy (fast); reduces traffic, increases CPU'
+  - 'Consumer: fetch.min.bytes minimizes request count; fetch.max.wait.ms is the maximum wait delay'
+  - In Python confluent-kafka the GIL is not held inside librdkafka, but Python-side calls may still compete
+  - 'Multithreading: one consumer per thread (careful with rebalance); multiprocessing: separate processes with separate consumers'
+  - For maximum performance use confluent-kafka with async I/O and a dedicated poll thread
+- id: kpy-s-003
+  type: knowledge
+  difficulty: 4
+  tags:
+  - python
+  - kafka
+  - avro
+  - schema-registry
+  - serialization
+  question:
+    text:
+      en: How does Avro serialization integrate with Kafka in Python? Explain the role of Confluent Schema Registry,
+        AvroSerializer, AvroDeserializer, and how schema evolution (backward/forward compatibility) is handled.
+      ru: Как Avro сериализация интегрируется с Kafka в Python? Объясните роль Confluent Schema Registry,
+        AvroSerializer, AvroDeserializer и как обрабатывается эволюция схем (обратная/прямая совместимость).
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between Avro, Protobuf, and JSON Schema?
+    - How to implement custom serde?
+    - What happens if schema is incompatible?
+    ru:
+    - В чём разница между Avro, Protobuf и JSON Schema?
+    - Как реализовать собственную сериализацию?
+    - Что происходит при несовместимости схем?
+  expected_points:
+  - Schema Registry stores schema versions for topic keys and values
+  - AvroSerializer auto-registers the schema, returns magic byte + schema ID + payload
+  - AvroDeserializer reads schema ID, loads schema from Registry, deserializes
+  - 'Schema evolution: backward (new reader reads old data), forward (old reader reads new data), full'
+  - 'Python client: confluent-kafka-python has built-in Avro and Protobuf support'
+  - Without Schema Registry you would need to manage schemas manually
+- id: kpy-s-004
+  type: knowledge
+  difficulty: 4
+  tags:
+  - python
+  - kafka
+  - multiprocessing
+  - high-throughput
+  question:
+    text:
+      en: What patterns exist for parallel Kafka message processing in Python? Discuss the trade-offs between
+        a single consumer distributing to worker processes via queue vs the process-per-partition pattern.
+        How do you handle rebalancing, commit coordination, and backpressure?
+      ru: Какие паттерны существуют для параллельной обработки Kafka сообщений в Python? Обсудите компромиссы между
+        одним консьюмером, распределяющим сообщения в воркер-процессы через очередь, и паттерном process-per-partition.
+        Как обрабатывать ребалансировку, координацию коммитов и backpressure?
+    code: null
+  follow_ups:
+    en:
+    - How to commit offsets reliably with worker processes?
+    - What is the 'process per partition' pattern?
+    - How to handle partition rebalance in this model?
+    ru:
+    - Как надёжно коммитить офсеты с воркер-процессами?
+    - Что такое паттерн 'процесс на партицию'?
+    - Как обрабатывать ребалансировку партиций в этой модели?
+  expected_points:
+  - Single consumer process simplifies offset commit (can commit after all workers finish)
+  - Distribution via queue is simple but creates a single point of contention
+  - Commit only after all workers confirm processing
+  - 'Alternative: each process runs its own consumer with separate partitions (process per partition)'
+  - 'Backpressure: bounded queue prevents worker overload'
+  - 'Rebalance: consumer process must pause reading, wait for workers to finish'

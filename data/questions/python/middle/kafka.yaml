@@ -1,0 +1,133 @@
+category: Kafka Client Development
+track: python
+level: middle
+description: Async consumers, error handling, retries, and monitoring in Python
+questions:
+- id: kpy-m-001
+  type: knowledge
+  difficulty: 2
+  tags:
+  - python
+  - kafka
+  - consumer
+  - offset
+  question:
+    text:
+      en: What is the difference between auto commit and manual offset commit in Kafka consumers? Explain
+        synchronous vs asynchronous commit, and when to use each approach.
+      ru: В чём разница между авто-коммитом и ручным коммитом офсетов в Kafka консьюмерах? Объясните
+        синхронный vs асинхронный коммит. Когда использовать каждый подход?
+    code: null
+  follow_ups:
+    en:
+    - What happens if commit fails?
+    - How to commit specific offsets (not just last polled)?
+    - What is the risk of manual commit?
+    ru:
+    - Что будет, если коммит не удался?
+    - Как коммитить конкретные офсеты (не последний полученный)?
+    - В чём риск ручного коммита?
+  expected_points:
+  - 'Auto commit (enable.auto.commit=true): commits every auto.commit.interval.ms, but duplicates are possible'
+  - 'Manual commit: control over timing, can commit after successful processing'
+  - 'Sync commit: blocks until broker responds, reliable'
+  - 'Async commit: non-blocking, commit may be lost on crash, faster'
+  - Manual commit enables exactly-once semantics (with idempotent processing)
+- id: kpy-m-002
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - kafka
+  - aiokafka
+  - asyncio
+  - fastapi
+  question:
+    text:
+      en: How does an async Kafka consumer work with aiokafka inside a FastAPI application? Explain the
+        startup/shutdown lifecycle, concurrency control, and backpressure handling patterns.
+      ru: Как работает асинхронный Kafka консьюмер с aiokafka внутри FastAPI приложения? Объясните
+        жизненный цикл запуска/остановки, контроль конкурентности и управление backpressure.
+    code: null
+  follow_ups:
+    en:
+    - How to limit max inflight messages (concurrency) with aiokafka?
+    - How to handle rebalances in async code?
+    - What is the difference between aiokafka and confluent-kafka async wrapper?
+    ru:
+    - Как ограничить максимальное количество одновременно обрабатываемых сообщений в aiokafka?
+    - Как обрабатывать ребалансировки в async коде?
+    - В чём разница между aiokafka и async обёрткой confluent-kafka?
+  expected_points:
+  - aiokafka provides an async/await API based on asyncio
+  - Start consumer via start(), stop via stop(), create a task for consume loop
+  - async for msg in consumer — iterator that waits for new messages
+  - 'For concurrency limiting: use asyncio.Semaphore or a bounded queue'
+  - 'Backpressure: if processing is slower than consumption, tune fetch.max.wait.ms or apply broker-side throttling'
+  - aiokafka is less performant than confluent-kafka but convenient in async applications
+- id: kpy-m-003
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - kafka
+  - errors
+  - retries
+  - poison-pill
+  question:
+    text:
+      en: How to handle message processing failures and retries in Python Kafka consumer? Discuss dead-letter queue pattern,
+        poison pills, and exponential backoff. How to implement custom retry with commit control?
+      ru: Как обрабатывать ошибки обработки сообщений и повторы в Python Kafka консьюмере? Обсудите паттерн dead-letter queue
+        (DLQ), ядовитые сообщения и экспоненциальную задержку. Как реализовать повтор с контролем коммита?
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between retry and reprocess?
+    - How to implement exponential backoff with Kafka?
+    - What metrics to monitor for DLQ?
+    ru:
+    - В чём разница между повтором и повторной обработкой?
+    - Как реализовать экспоненциальную задержку с Kafka?
+    - Какие метрики отслеживать для DLQ?
+  expected_points:
+  - Processing errors must not block the consumer (otherwise rebalance)
+  - 'Dead-letter queue: separate topic for unprocessable messages'
+  - 'Poison pill: message that always fails; must be skipped'
+  - 'Retries: skip commit and use seek() to return to a previous offset'
+  - 'Exponential backoff: use a separate delayed topic or an application timer'
+  - 'Alternative: pause/resume partition during retry'
+- id: kpy-m-004
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - kafka
+  - monitoring
+  - metrics
+  - lags
+  question:
+    text:
+      en: 'What metrics and tools are essential for monitoring Python Kafka applications? How to measure consumer lag, producer
+        throughput, errors. How to debug common issues: ''message too large'', ''broker not available'', ''rebalance timeout''.'
+      ru: 'Какие метрики и инструменты важны для мониторинга Python Kafka приложений? Как измерить lag консьюмера, пропускную
+        способность продюсера, ошибки. Как отлаживать типичные проблемы: ''message too large'', ''broker not available'',
+        ''rebalance timeout''.'
+    code: null
+  follow_ups:
+    en:
+    - How to alert when consumer lag exceeds threshold?
+    - What is a good lag value?
+    - How to debug rebalance issues with logs?
+    ru:
+    - Как отправлять алерт, когда lag превышает порог?
+    - Какое значение lag считается хорошим?
+    - Как отлаживать проблемы ребаланса по логам?
+  expected_points:
+  - Consumer lag = difference between latest partition offset and consumer committed offset
+  - High lag means the consumer cannot keep up with processing
+  - 'Metrics: JMX (Kafka brokers), Prometheus + Grafana, Burrow (LinkedIn) for lag'
+  - 'In Python: producer stats_cb config, client metrics from librdkafka'
+  - 'Message too large: increase max.request.size or message.max.bytes'
+  - 'Broker not available: check network, DNS, and security settings'
+  - 'Rebalance timeout: increase max.poll.interval.ms and session.timeout.ms'

@@ -1,0 +1,94 @@
+category: Grafana Basics
+track: observability
+level: junior
+description: Dashboards, variables, plugins, and core Grafana concepts
+questions:
+- id: ograf-j-001
+  type: knowledge
+  difficulty: 1
+  tags:
+  - grafana
+  - dashboard
+  - panels
+  - visualization
+  question:
+    text:
+      en: What is Grafana? Explain the concept of dashboards, panels, rows, and data sources (Prometheus, Loki, etc.). How
+        to create a simple graph panel with a Prometheus query and set basic visualization options (legend, axes, thresholds)?
+      ru: Что такое Grafana? Объясните концепцию дашбордов, панелей, строк и источников данных (Prometheus, Loki и др.). Как
+        создать простой график с Prometheus-запросом и настроить базовые параметры визуализации (легенда, оси, пороги)?
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between Stat, Gauge, and Time series panels?
+    - How to share a dashboard with a link?
+    ru:
+    - В чём разница между панелями Stat, Gauge и Time series?
+    - Как поделиться дашбордом по ссылке?
+  expected_points:
+  - Grafana is an open-source analytics and visualization platform.
+  - 'Dashboard: collection of panels arranged in rows/grids.'
+  - 'Data source: where metrics come from (Prometheus, Loki, InfluxDB, SQL).'
+  - 'Panels: Time series, Bar chart, Stat, Table, Heatmap, etc.'
+  - 'Query editor: write PromQL, SQL, LogQL with variable interpolation.'
+  - 'Thresholds: color boundaries for alerts/warnings.'
+- id: ograf-j-002
+  type: knowledge
+  difficulty: 2
+  tags:
+  - grafana
+  - variables
+  - templating
+  - interactivity
+  question:
+    text:
+      en: 'How to use Grafana variables (templating)? Explain variable types: query, interval, custom, constant. Show an example
+        of a variable that lists all instances from Prometheus, and use it in a panel query. How to use $__rate_interval and
+        $__interval?'
+      ru: 'Как использовать переменные Grafana (шаблонизация)? Объясните типы переменных: query, interval, custom, constant.
+        Покажите пример переменной, которая получает все экземпляры из Prometheus, и используйте её в запросе панели. Как
+        использовать $__rate_interval и $__interval?'
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between $__interval and $__rate_interval?
+    - How to create a repeated row or panel per variable value?
+    ru:
+    - В чём разница между $__interval и $__rate_interval?
+    - Как создать повторяющуюся строку или панель для каждого значения переменной?
+  expected_points:
+  - Variables make dashboards dynamic and reusable.
+  - 'Query variable: fetches values from data source (e.g., label_values).'
+  - 'Interval variable: allows user to pick time bucket (auto or manual).'
+  - '$__interval: Grafana-calculated time interval (zoom-adaptive).'
+  - '$__rate_interval: ensures valid range for rate() (at least 4x scrape interval).'
+  - Use 'repeat' option to create one panel per variable value.
+- id: ograf-j-003
+  type: knowledge
+  difficulty: 2
+  tags:
+  - grafana
+  - plugins
+  - data-sources
+  - panels
+  question:
+    text:
+      en: What types of plugins exist in Grafana (data source, panel, app)? How to install a community plugin (e.g., Pie Chart,
+        Clock, or Infinity data source)? What are the risks of using custom plugins?
+      ru: Какие типы плагинов существуют в Grafana (источники данных, панели, приложения)? Как установить плагин сообщества
+        (например, Pie Chart, Clock или Infinity data source)? Каковы риски использования пользовательских плагинов?
+    code: null
+  follow_ups:
+    en:
+    - How to create a custom panel plugin?
+    - What is the difference between panel and app plugin?
+    ru:
+    - Как создать собственный плагин панели?
+    - В чём разница между плагинами панели и приложения?
+  expected_points:
+  - 'Data source plugins: query external systems (e.g., PostgreSQL, Graphite, AWS CloudWatch).'
+  - 'Panel plugins: custom visualizations (Pie chart, Worldmap, Sankey).'
+  - 'App plugins: bundle data sources, dashboards, and panels (e.g., Enterprise Logs).'
+  - Install via grafana-cli or Kubernetes operator (grafana-operator).
+  - 'Risks: security vulnerabilities, performance issues, lack of updates.'
+  - Provisioning allows declarative plugin config via YAML.

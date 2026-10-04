@@ -1,0 +1,98 @@
+category: "Exceptions"
+track: "python"
+level: "junior"
+
+description: "Python exception handling: try/except/finally, raising exceptions, and exception hierarchy"
+
+questions:
+  - id: "exc-001"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["try-except", "error-handling"]
+    question:
+      text:
+        en: "Explain the try/except/else/finally blocks in Python. What is the purpose of each?"
+        ru: "Объясните блоки try/except/else/finally в Python. Каково назначение каждого из них?"
+      code: null
+    follow_ups:
+      en:
+        - "When does the 'else' block execute?"
+        - "Does 'finally' always execute? Even on return or exception?"
+        - "What is the order of execution?"
+      ru:
+        - "Когда выполняется блок 'else'?"
+        - "Всегда ли выполняется 'finally'? Даже при return или исключении?"
+        - "Каков порядок выполнения?"
+    expected_points:
+      - "'try': block where exceptions might occur"
+      - "'except': catches and handles exceptions"
+      - "'else': runs if no exception occurred in try block"
+      - "'finally': always runs — for cleanup (files, locks, connections)"
+
+  - id: "exc-002"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["exception-hierarchy", "base-exceptions"]
+    question:
+      text:
+        en: "What is the Python exception hierarchy? What is the difference between BaseException, Exception, and KeyboardInterrupt?"
+        ru: "Какова иерархия исключений в Python? В чём разница между BaseException, Exception и KeyboardInterrupt?"
+      code: null
+    follow_ups:
+      en:
+        - "Why should you avoid catching BaseException?"
+        - "What is the difference between SystemExit and KeyboardInterrupt?"
+        - "Where do StopIteration and GeneratorExit fit?"
+      ru:
+        - "Почему не стоит перехватывать BaseException?"
+        - "В чём разница между SystemExit и KeyboardInterrupt?"
+        - "Где находятся StopIteration и GeneratorExit?"
+    expected_points:
+      - "BaseException is the root — don't catch this directly"
+      - "Exception is the base for all normal exceptions"
+      - "KeyboardInterrupt, SystemExit, GeneratorExit inherit from BaseException directly"
+      - "Always catch Exception or specific types, not BaseException"
+
+  - id: "exc-003"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["raise", "custom-exceptions"]
+    question:
+      text:
+        en: "How do you raise and create custom exceptions in Python?"
+        ru: "Как создавать и выбрасывать пользовательские исключения в Python?"
+      code: null
+    follow_ups:
+      en:
+        - "How do you chain exceptions with 'raise from'?"
+        - "When should you create a custom exception vs using built-in?"
+      ru:
+        - "Как объединять исключения с помощью 'raise from'?"
+        - "Когда создавать собственное исключение, а когда использовать встроенное?"
+    expected_points:
+      - "Custom exceptions inherit from Exception"
+      - "'raise' triggers an exception"
+      - "'raise from' chains exceptions (e.g., raise new from original)"
+      - "Create custom exceptions for domain-specific error conditions"
+
+  - id: "exc-004"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["context-managers", "exception-in-with"]
+    question:
+      text:
+        en: "How do exceptions interact with context managers? What happens if __exit__ returns True?"
+        ru: "Как исключения взаимодействуют с контекстными менеджерами? Что произойдёт, если __exit__ вернёт True?"
+      code: null
+    follow_ups:
+      en:
+        - "How does @contextmanager handle exceptions?"
+        - "When would __exit__ suppress an exception?"
+      ru:
+        - "Как @contextmanager обрабатывает исключения?"
+        - "Когда __exit__ может подавить исключение?"
+    expected_points:
+      - "__exit__ receives exception type, value, and traceback"
+      - "If __exit__ returns True, exception is suppressed"
+      - "If __exit__ returns False (default), exception propagates"
+      - "Useful for implementing retry logic or ignoring specific errors"

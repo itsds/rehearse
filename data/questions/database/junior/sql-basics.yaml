@@ -1,0 +1,226 @@
+category: "SQL Basics"
+track: "database"
+level: "junior"
+
+description: "Fundamental SQL: SELECT, INSERT, UPDATE, DELETE, WHERE, JOIN basics, aggregations"
+
+questions:
+  - id: "sqlb-001"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["SELECT", "WHERE", "filters"]
+    question:
+      text:
+        en: "Explain the basic structure of a SELECT query. How does WHERE clause filter data?"
+        ru: "Объясните базовую структуру запроса SELECT. Как предложение WHERE фильтрует данные?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the order of execution of SQL clauses?"
+        - "How do NULL values behave in WHERE conditions?"
+        - "What is the difference between WHERE and HAVING?"
+      ru:
+        - "В каком порядке выполняются предложения SQL?"
+        - "Как ведут себя значения NULL в условиях WHERE?"
+        - "В чём разница между WHERE и HAVING?"
+    expected_points:
+      - "SELECT specifies columns, FROM specifies source, WHERE filters rows"
+      - "Execution order: FROM → WHERE → SELECT → ORDER BY"
+      - "NULL comparisons use IS NULL / IS NOT NULL, not = NULL"
+      - "HAVING filters after aggregation, WHERE filters before"
+
+  - id: "sqlb-002"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["INSERT", "UPDATE", "DELETE"]
+    question:
+      text:
+        en: "How do INSERT, UPDATE, and DELETE statements work? What are the risks of each?"
+        ru: "Как работают операторы INSERT, UPDATE и DELETE? Какие риски у каждого?"
+      code: null
+    follow_ups:
+      en:
+        - "What happens if you omit the WHERE clause on UPDATE or DELETE?"
+        - "How do transactions protect DML operations?"
+        - "What is INSERT ... ON DUPLICATE KEY UPDATE / UPSERT?"
+      ru:
+        - "Что произойдёт, если опустить WHERE в UPDATE или DELETE?"
+        - "Как транзакции защищают DML-операции?"
+        - "Что такое INSERT ... ON DUPLICATE KEY UPDATE / UPSERT?"
+    expected_points:
+      - "INSERT adds new rows, UPDATE modifies existing, DELETE removes"
+      - "Omitting WHERE on UPDATE/DELETE affects ALL rows"
+      - "Always use transactions (BEGIN/COMMIT) for multi-step DML"
+      - "Use SELECT to preview affected rows before DELETE/UPDATE"
+
+  - id: "sqlb-003"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["JOIN", "INNER-JOIN", "LEFT-JOIN"]
+    question:
+      text:
+        en: "What are the different types of JOINs in SQL? Explain INNER, LEFT, RIGHT, and FULL OUTER JOIN."
+        ru: "Какие типы JOIN существуют в SQL? Объясните INNER, LEFT, RIGHT и FULL OUTER JOIN."
+      code: null
+    follow_ups:
+      en:
+        - "What rows does each JOIN type return?"
+        - "How do you handle NULLs from LEFT JOIN?"
+        - "What is a CROSS JOIN and when would you use it?"
+      ru:
+        - "Какие строки возвращает каждый тип JOIN?"
+        - "Как обрабатывать NULL из LEFT JOIN?"
+        - "Что такое CROSS JOIN и когда его использовать?"
+    expected_points:
+      - "INNER JOIN: only matching rows from both tables"
+      - "LEFT JOIN: all rows from left, NULLs where right missing"
+      - "RIGHT JOIN: all rows from right, NULLs where left missing"
+      - "FULL OUTER JOIN: all rows from both, NULLs where no match"
+
+  - id: "sqlb-004"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["aggregation", "GROUP BY", "HAVING"]
+    question:
+      text:
+        en: "How does GROUP BY work with aggregate functions? What is the difference between WHERE and HAVING?"
+        ru: "Как GROUP BY работает с агрегатными функциями? В чём разница между WHERE и HAVING?"
+      code: null
+    follow_ups:
+      en:
+        - "What aggregate functions does SQL provide (COUNT, SUM, AVG, MIN, MAX)?"
+        - "Why can't you use WHERE after GROUP BY?"
+        - "How does COUNT(*) differ from COUNT(column)?"
+      ru:
+        - "Какие агрегатные функции есть в SQL (COUNT, SUM, AVG, MIN, MAX)?"
+        - "Почему нельзя использовать WHERE после GROUP BY?"
+        - "Чем COUNT(*) отличается от COUNT(column)?"
+    expected_points:
+      - "GROUP BY groups rows by column values"
+      - "WHERE filters before grouping, HAVING filters after"
+      - "COUNT(*) counts all rows, COUNT(col) counts non-NULL values"
+      - "SELECT columns must be in GROUP BY or be aggregate functions"
+
+  - id: "sqlb-005"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["ORDER BY", "LIMIT", "DISTINCT"]
+    question:
+      text:
+        en: "How do ORDER BY, LIMIT, and DISTINCT work in SQL queries?"
+        ru: "Как работают ORDER BY, LIMIT и DISTINCT в SQL-запросах?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the default sort order in ORDER BY?"
+        - "How does LIMIT work in different databases (MySQL vs PostgreSQL)?"
+        - "What is the difference between DISTINCT and GROUP BY?"
+      ru:
+        - "Какой порядок сортировки по умолчанию в ORDER BY?"
+        - "Как LIMIT работает в разных СУБД (MySQL vs PostgreSQL)?"
+        - "В чём разница между DISTINCT и GROUP BY?"
+    expected_points:
+      - "ORDER BY sorts results (ASC default, DESC descending)"
+      - "LIMIT restricts number of rows returned"
+      - "DISTINCT removes duplicate rows from results"
+      - "GROUP BY is more flexible — can use with aggregates"
+
+  - id: "sqlb-006"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["JOIN", "SQL", "relationships"]
+    question:
+      text:
+        en: "What are JOINs in SQL? What types of JOINs exist?"
+        ru: "Что такое соединения (JOIN) в SQL? Какие виды соединений существуют?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between INNER JOIN and OUTER JOIN?"
+        - "How does a self-join work?"
+        - "What is a cross join and when would you use it?"
+      ru:
+        - "В чём разница между INNER JOIN и OUTER JOIN?"
+        - "Как работает self-join?"
+        - "Что такое cross join и когда его использовать?"
+    expected_points:
+      - "JOIN combines rows from two or more tables based on related column"
+      - "Types: INNER, LEFT (OUTER), RIGHT (OUTER), FULL OUTER, CROSS"
+      - "INNER JOIN: only matching rows, OUTER JOIN: all rows from one/both tables"
+      - "Self-join: table joined with itself using aliases"
+
+  - id: "sqlb-007"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["DDL", "DML", "DCL", "TCL", "SQL"]
+    question:
+      text:
+        en: "What is the difference between DDL, DML, DCL and TCL? Which commands belong to each group? How does `DELETE` differ from `TRUNCATE`?"
+        ru: "В чём различие между DDL, DML, DCL и TCL? Какие команды входят в каждую из этих групп? Чем отличается `DELETE` от `TRUNCATE`?"
+      code: null
+    follow_ups:
+      en:
+        - "What are examples of DDL, DML, DCL and TCL commands?"
+        - "Why is TRUNCATE faster than DELETE?"
+        - "Can you rollback a TRUNCATE operation?"
+      ru:
+        - "Какие примеры команд DDL, DML, DCL и TCL?"
+        - "Почему TRUNCATE быстрее DELETE?"
+        - "Можно ли откатить операцию TRUNCATE?"
+    expected_points:
+      - "DDL: Data Definition Language (CREATE, ALTER, DROP, TRUNCATE)"
+      - "DML: Data Manipulation Language (SELECT, INSERT, UPDATE, DELETE)"
+      - "DCL: Data Control Language (GRANT, REVOKE)"
+      - "TCL: Transaction Control Language (COMMIT, ROLLBACK, SAVEPOINT)"
+      - "DELETE: logs each row deletion, can have WHERE, can be rolled back"
+      - "TRUNCATE: removes all rows without logging each, faster, auto-commits"
+
+  - id: "sqlb-008"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["constraints", "SQL", "integrity"]
+    question:
+      text:
+        en: "What are constraints in SQL? List the main types of constraints."
+        ru: "Что такое ограничения (constraints) в SQL? Назовите основные типы ограничений."
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between PRIMARY KEY and UNIQUE constraint?"
+        - "How does a FOREIGN KEY constraint work?"
+        - "What does the CHECK constraint do?"
+      ru:
+        - "В чём разница между PRIMARY KEY и UNIQUE constraint?"
+        - "Как работает ограничение FOREIGN KEY?"
+        - "Что делает ограничение CHECK?"
+    expected_points:
+      - "Constraints enforce rules on table data"
+      - "Types: NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK, DEFAULT"
+      - "PRIMARY KEY: unique + not null identifier for each row"
+      - "FOREIGN KEY: ensures referential integrity between tables"
+      - "CHECK: validates data against a condition"
+
+  - id: "sqlb-009"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["SQL-injection", "security", "database"]
+    question:
+      text:
+        en: "What are SQL injections and what are the ways to protect against them?"
+        ru: "Что такое SQL-инъекции и какие существуют способы защиты от них?"
+      code: null
+    follow_ups:
+      en:
+        - "How does parameterized query prevent SQL injection?"
+        - "What is the difference between prepared statements and stored procedures?"
+        - "What are other database security best practices?"
+      ru:
+        - "Как параметризованный запрос предотвращает SQL-инъекции?"
+        - "В чём разница между подготовленными выражениями и хранимыми процедурами?"
+        - "Какие ещё есть лучшие практики безопасности баз данных?"
+    expected_points:
+      - "SQL injection: attacker injects malicious SQL code through user input"
+      - "Prevention: use parameterized queries/prepared statements"
+      - "Never concatenate user input into SQL queries"
+      - "Use ORM with parameter binding, validate and sanitize input"
+      - "Apply principle of least privilege for database users"

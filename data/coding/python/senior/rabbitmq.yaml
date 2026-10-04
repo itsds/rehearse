@@ -1,0 +1,217 @@
+category: "RabbitMQ Client Production"
+track: "python"
+level: "senior"
+
+description: "Implement RPC pattern over RabbitMQ and DLX-based retry with exponential backoff"
+
+tasks:
+  - id: "rabbitmq-s-001"
+    difficulty: 4
+    tags: ["rabbitmq", "rpc", "pika", "correlation-id", "reply-to", "timeout"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a classic RPC pattern over RabbitMQ.
+          The client sends a request with a unique correlation_id and a reply_to queue.
+          The server processes the request and sends the response back.
+
+          Your task:
+          Complete the RPC Client so that:
+          - The client declares an exclusive callback queue for responses
+          - Each request generates a unique correlation_id
+          - The request includes reply_to and correlation_id in properties
+          - The client waits for the response with a timeout
+          - If the timeout expires, it raises TimeoutError
+
+          Complete the RPC Server so that:
+          - It consumes from the rpc_queue
+          - It processes the request (calls process_request)
+          - It sends the response to the reply_to queue with the same correlation_id
+          - It acknowledges the original message
+
+          The server's process_request function is already implemented.
+        ru: |
+          Контекст:
+          Нужно реализовать RPC паттерн поверх RabbitMQ.
+
+          Задача:
+          Реализуйте RPC клиент:
+          - Объявляет эксклюзивную очередь обратного вызова
+          - Каждый запрос получает уникальный correlation_id
+          - В свойствах сообщения передаются reply_to и correlation_id
+          - Клиент ждёт ответ с таймаутом
+          - При таймауте выбрасывает TimeoutError
+
+          Реализуйте RPC сервер:
+          - Потребляет из rpc_queue
+          - Вызывает process_request
+          - Отправляет ответ в reply_to с тем же correlation_id
+          - Подтверждает исходное сообщение
+      starter_code: |
+        import pika
+        import uuid
+        import time
+        import logging
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def process_request(body):
+            """Process request and return response (simulated)."""
+            n = int(body)
+            return str(n * 2)
+
+
+        # --- RPC Client ---
+        class RpcClient:
+            def __init__(self):
+                self.connection = pika.BlockingConnection()
+                self.channel = self.connection.channel()
+                # TODO: declare exclusive callback queue
+                self.callback_queue = None
+                self.response = None
+                self.corr_id = None
+
+            def on_response(self, ch, method, props, body):
+                """Match response by correlation_id."""
+                # TODO: check if correlation_id matches, store response
+                pass
+
+            def call(self, message, timeout=5):
+                """Send RPC request and wait for response."""
+                # TODO: generate corr_id, publish with reply_to and correlation_id,
+                #       wait for response with timeout, return response
+                pass
+
+
+        # --- RPC Server ---
+        class RpcServer:
+            def __init__(self):
+                self.connection = pika.BlockingConnection()
+                self.channel = self.connection.channel()
+                # TODO: declare rpc_queue, set QoS, consume
+                pass
+
+            def on_request(self, ch, method, props, body):
+                """Handle incoming RPC request."""
+                # TODO: process request, send response to reply_to, ack
+                pass
+
+            def start(self):
+                self.channel.start_consuming()
+
+
+        # Usage:
+        # client = RpcClient()
+        # response = client.call("5")
+        # print(f"Response: {response}")
+    expected_points:
+      - "Client declares exclusive callback queue"
+      - "Each request has unique correlation_id"
+      - "Request properties include reply_to and correlation_id"
+      - "Client waits with timeout using process_data_events"
+      - "Server processes request and sends response to reply_to"
+      - "Server acks the original message after processing"
+      - "Server uses prefetch_count=1"
+
+  - id: "rabbitmq-s-002"
+    difficulty: 4
+    tags: ["rabbitmq", "dlx", "retry", "exponential-backoff", "ttl", "dead-letter"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a retry pattern with dead-letter exchange (DLX) in RabbitMQ.
+          When a message processing fails, it should be sent to a retry queue with a TTL delay,
+          and then automatically returned to the main queue for reprocessing.
+
+          Your task:
+          Complete the setup so that:
+          - A main queue is declared with DLX pointing to retry_exchange
+          - A retry queue is declared with TTL (5000ms) and DLX pointing back to the main exchange
+          - The retry exchange is a direct exchange
+          - The consumer acks on success, nacks with requeue=False on failure (message goes to DLX → retry)
+          - After TTL expires, the message automatically returns to the main queue
+
+          The exchanges and the consumer callback are partially implemented.
+        ru: |
+          Контекст:
+          Нужно реализовать паттерн повтора с Dead Letter Exchange (DLX) в RabbitMQ.
+          При ошибке обработки сообщение отправляется в очередь повтора с TTL задержкой,
+          после чего автоматически возвращается в основную очередь.
+
+          Задача:
+          Настройте инфраструктуру так, чтобы:
+          - Основная очередь объявлена с DLX, указывающим на retry_exchange
+          - Очередь повтора имеет TTL (5000ms) и DLX обратно на основной exchange
+          - Consumer подтверждает успех, при ошибке nack с requeue=False
+          - По истечении TTL сообщение автоматически возвращается в основную очередь
+      starter_code: |
+        import pika
+        import logging
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        class RetryConsumer:
+            def __init__(self, host="localhost"):
+                self.connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(host)
+                )
+                self.channel = self.connection.channel()
+
+                # Declare exchanges
+                self.channel.exchange_declare(
+                    "dlx_exchange", exchange_type="direct", durable=True
+                )
+                self.channel.exchange_declare(
+                    "retry_exchange", exchange_type="direct", durable=True
+                )
+
+                # TODO: declare main_queue with DLX -> retry_exchange
+                # TODO: declare retry_queue with TTL and DLX -> dlx_exchange
+                # TODO: bind queues to exchanges
+
+                self.channel.basic_qos(prefetch_count=1)
+
+            def callback(self, ch, method, properties, body):
+                """Process message, ack on success, nack on failure."""
+                try:
+                    logger.info(f"Processing: {body}")
+                    # simulate processing
+                    ch.basic_ack(delivery_tag=method.delivery_tag)
+                except Exception:
+                    # TODO: nack with requeue=False -> message goes to DLX -> retry queue
+                    pass
+
+            def consume(self, queue):
+                self.channel.basic_consume(
+                    queue, self.callback, auto_ack=False
+                )
+                logger.info("Waiting for messages...")
+                self.channel.start_consuming()
+
+            def close(self):
+                if self.connection and self.connection.is_open:
+                    self.connection.close()
+
+
+        consumer = RetryConsumer()
+        try:
+            consumer.consume("main_queue")
+        except KeyboardInterrupt:
+            consumer.close()
+    expected_points:
+      - "Declares dlx_exchange and retry_exchange as direct"
+      - "Main queue has x-dead-letter-exchange=retry_exchange and x-dead-letter-routing-key=retry"
+      - "Retry queue has x-dead-letter-exchange=dlx_exchange, x-dead-letter-routing-key=main, and x-message-ttl=5000"
+      - "Queues are bound to their respective exchanges"
+      - "Consumer nacks with requeue=False on failure → message goes to DLX → retry queue"
+      - "After TTL, message returns to main queue automatically"

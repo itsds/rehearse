@@ -1,0 +1,6 @@
+{% set status_hint = "<strong>" ~ status.model_display_name ~ "</strong> — transcription language: " ~ status.locale_label %}
+{% set status_element_id = "speech-model-status" %}
+{% set download_button_id = "speech-model-download-btn" %}
+{% set download_url = "/speech/model/download" %}
+{% set download_label = "Download speech model" %}
+{% include "model_status_panel.html" %}

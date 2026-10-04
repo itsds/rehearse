@@ -1,0 +1,130 @@
+category: RabbitMQ Client Development
+track: python
+level: middle
+description: Async consumers, RPC, connection recovery, and message serialization
+questions:
+- id: rpy-m-001
+  type: knowledge
+  difficulty: 2
+  tags:
+  - python
+  - rabbitmq
+  - pika
+  - consumer
+  - ack
+  question:
+    text:
+      en: What is the difference between basic_ack, basic_nack, and basic_reject in RabbitMQ? Explain
+        how QoS prefetch count, manual acknowledgements, and graceful shutdown work in a pika consumer.
+      ru: В чём разница между basic_ack, basic_nack и basic_reject в RabbitMQ? Объясните, как работают
+        QoS prefetch count, ручные подтверждения и корректное завершение в pika консьюмере.
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between nack and reject?
+    - How to implement exponential backoff with requeue false and DLX?
+    - How to handle consumer cancel (e.g., queue deletion)?
+    ru:
+    - В чём разница между nack и reject?
+    - Как реализовать экспоненциальную задержку с requeue false и DLX?
+    - Как обрабатывать отмену консьюмера (например, удаление очереди)?
+  expected_points:
+  - 'basic_ack: confirms successful processing, broker removes message'
+  - 'basic_nack: rejects with requeue option (true = back to queue, false = DLX or drop)'
+  - 'basic_reject: rejects a single message (legacy, use nack)'
+  - prefetch_count=1 limits unacked messages — fair dispatch
+  - 'basic_cancel: stops consumer, needed for graceful shutdown'
+- id: rpy-m-002
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - rabbitmq
+  - aio-pika
+  - asyncio
+  question:
+    text:
+      en: How does an async RabbitMQ consumer work with aio-pika? Explain the role of connect_robust,
+        manual ack, backpressure handling via Semaphore, and FastAPI startup/shutdown integration.
+      ru: Как работает асинхронный RabbitMQ консьюмер с aio-pika? Объясните роль connect_robust,
+        ручных подтверждений, управления backpressure через Semaphore и интеграцию с FastAPI.
+    code: null
+  follow_ups:
+    en:
+    - What does connect_robust do?
+    - How to send RPC requests with aio-pika?
+    - How to use direct reply-to with async consumer?
+    ru:
+    - Что делает connect_robust?
+    - Как отправлять RPC запросы с aio-pika?
+    - Как использовать direct reply-to с асинхронным консьюмером?
+  expected_points:
+  - 'connect_robust: automatic reconnect on connection loss'
+  - async with message.process(requeue=False) auto-acks on exit (nack on exception)
+  - set_qos(prefetch_count) manages flow but does not fully limit processing concurrency
+  - Semaphore limits concurrent in-flight message processing in the application
+  - 'For RPC: reply_to queue and correlation_id; direct-reply-to uses ''amq.rabbitmq.reply-to'''
+- id: rpy-m-003
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - rabbitmq
+  - connection
+  - reconnect
+  - heartbeat
+  question:
+    text:
+      en: How to handle RabbitMQ connection failures and reconnections in Python? Discuss heartbeat settings, connection recovery
+        strategies (exponential backoff, retry limits), and channel recovery. Show a robust publisher with automatic reconnect.
+      ru: Как обрабатывать сбои соединения с RabbitMQ и переподключения в Python? Обсудите настройки heartbeat, стратегии
+        восстановления соединения (экспоненциальная задержка, лимиты повторов) и восстановление каналов. Покажите надёжного
+        издателя с автоматическим переподключением.
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between connection and channel recovery?
+    - How to detect stale connection with heartbeat?
+    - When to use BlockingConnection vs SelectConnection?
+    ru:
+    - В чём разница между восстановлением соединения и канала?
+    - Как обнаружить неактивное соединение с помощью heartbeat?
+    - Когда использовать BlockingConnection против SelectConnection?
+  expected_points:
+  - Heartbeat prevents connection close due to inactivity (default 60 sec)
+  - On connection loss all channels become invalid; everything must be recreated
+  - Exponential backoff is the standard reconnect strategy
+  - SelectConnection (async) allows more flexible recovery but is more complex
+  - Use mandatory + return callbacks to verify delivery reliability
+- id: rpy-m-004
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - rabbitmq
+  - json
+  - avro
+  - msgpack
+  question:
+    text:
+      en: How to handle message serialization in RabbitMQ Python clients? Compare JSON, MessagePack, Avro, and Protobuf. Show
+        an example of using JSON with content_type header and custom serializer for complex objects.
+      ru: Как работать с сериализацией сообщений в Python клиентах RabbitMQ? Сравните JSON, MessagePack, Avro и Protobuf.
+        Покажите пример использования JSON с заголовком content_type и собственного сериализатора для сложных объектов.
+    code: null
+  follow_ups:
+    en:
+    - What are the advantages of Protobuf over JSON?
+    - How to handle versioning of serialized data?
+    - Is there built-in support for Avro in any Python RabbitMQ client?
+    ru:
+    - Каковы преимущества Protobuf перед JSON?
+    - Как работать с версионированием сериализованных данных?
+    - Есть ли встроенная поддержка Avro в каком-либо Python RabbitMQ клиенте?
+  expected_points:
+  - 'JSON: readable, slow, large size, no strict schema'
+  - 'MsgPack: more compact than JSON, still dynamic'
+  - 'Protobuf: contract serialization, fast, small size, backward compatibility'
+  - 'Avro: schema stored separately, supports evolution'
+  - Content-type header helps the consumer pick the correct deserializer
+  - Python has no built-in Avro for AMQP; use manual implementation or external tooling

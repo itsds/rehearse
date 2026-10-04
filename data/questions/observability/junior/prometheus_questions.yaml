@@ -1,0 +1,65 @@
+category: Prometheus Fundamentals
+track: observability
+level: junior
+description: Prometheus architecture, pull model, and metric types
+questions:
+- id: oprom-j-001
+  type: knowledge
+  difficulty: 2
+  tags:
+  - prometheus
+  - metrics
+  - pull-model
+  - tsdb
+  question:
+    text:
+      en: Explain the Prometheus architecture. How does the pull model work? What components (Prometheus server, TSDB, exporters,
+        Pushgateway, Alertmanager) exist and what are their roles?
+      ru: Объясните архитектуру Prometheus. Как работает pull-модель? Какие компоненты существуют (сервер Prometheus, TSDB,
+        экспортеры, Pushgateway, Alertmanager) и какова их роль?
+    code: null
+  follow_ups:
+    en:
+    - Why does Prometheus use pull instead of push?
+    - What are the tradeoffs of the pull model?
+    ru:
+    - Почему Prometheus использует pull вместо push?
+    - Каковы компромиссы pull-модели?
+  expected_points:
+  - Prometheus server scrapes metrics from targets via HTTP (pull model).
+  - TSDB stores time-series data with labels (efficient compression).
+  - Exporters expose metrics for third-party systems (node_exporter, blackbox_exporter).
+  - Pushgateway allows ephemeral jobs to push metrics (avoid missing short-lived data).
+  - Alertmanager handles deduplication, grouping, and routing of alerts.
+  - Pull model simplifies discovery and reduces configuration drift.
+- id: oprom-j-002
+  type: knowledge
+  difficulty: 2
+  tags:
+  - prometheus
+  - metrics
+  - counter
+  - gauge
+  - histogram
+  - summary
+  question:
+    text:
+      en: What metric types does Prometheus support? Explain Counter, Gauge, Histogram, Summary. How to choose between Histogram
+        and Summary? Provide example metrics with _total, _bucket suffixes.
+      ru: Какие типы метрик поддерживает Prometheus? Объясните Counter, Gauge, Histogram, Summary. Как выбрать между Histogram
+        и Summary? Приведите примеры метрик с суффиксами _total, _bucket.
+    code: null
+  follow_ups:
+    en:
+    - What is the difference between Histogram and Summary quantiles?
+    - How to calculate 95th percentile from histogram?
+    ru:
+    - В чём разница между квантилями Histogram и Summary?
+    - Как вычислить 95-й перцентиль из гистограммы?
+  expected_points:
+  - 'Counter: cumulative value that only increases (request count, errors).'
+  - 'Gauge: arbitrary values (temperature, memory usage).'
+  - 'Histogram: buckets + sum + count; quantiles calculated server-side (prometheus).'
+  - 'Summary: client-side quantiles (no buckets), but less flexible for aggregation.'
+  - Use Histogram when you need aggregatable percentiles across multiple instances.
+  - Use Summary when you know quantiles in advance and need low overhead.

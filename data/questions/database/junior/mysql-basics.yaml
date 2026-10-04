@@ -1,0 +1,126 @@
+category: "MySQL Basics"
+track: "database"
+level: "junior"
+
+description: "MySQL-specific features: storage engines, SHOW/EXPLAIN, MySQL-specific syntax"
+
+questions:
+  - id: "my-001"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["mysql", "storage-engines"]
+    question:
+      text:
+        en: "What storage engines does MySQL support? Compare InnoDB and MyISAM."
+        ru: "Какие движки хранения поддерживает MySQL? Сравните InnoDB и MyISAM."
+      code: null
+    follow_ups:
+      en:
+        - "What is the default MySQL storage engine?"
+        - "Why is InnoDB preferred for transactional workloads?"
+        - "When would you use MyISAM in modern MySQL?"
+      ru:
+        - "Какой движок хранения используется в MySQL по умолчанию?"
+        - "Почему InnoDB предпочтителен для транзакционных нагрузок?"
+        - "Когда в современном MySQL имеет смысл использовать MyISAM?"
+    expected_points:
+      - "InnoDB: ACID-compliant, transactions, foreign keys, row-level locking"
+      - "MyISAM: table-level locking, no transactions, full-text search"
+      - "InnoDB is the default since MySQL 5.5"
+      - "MyISAM can be faster for read-heavy log/archive tables"
+
+  - id: "my-002"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["mysql-syntax", "SHOW", "DESCRIBE"]
+    question:
+      text:
+        en: "What MySQL-specific administrative commands exist (SHOW, DESCRIBE, EXPLAIN)?"
+        ru: "Какие административные команды специфичны для MySQL (SHOW, DESCRIBE, EXPLAIN)?"
+      code: null
+    follow_ups:
+      en:
+        - "How does EXPLAIN help understand query execution?"
+        - "What information does SHOW INDEX provide?"
+        - "What is SHOW PROCESSLIST used for?"
+      ru:
+        - "Как EXPLAIN помогает понять выполнение запроса?"
+        - "Какую информацию даёт SHOW INDEX?"
+        - "Для чего используется SHOW PROCESSLIST?"
+    expected_points:
+      - "SHOW DATABASES/TABLES — list databases and tables"
+      - "DESCRIBE table — shows column info, types, keys"
+      - "EXPLAIN SELECT — shows query execution plan"
+      - "SHOW PROCESSLIST — shows running queries"
+
+  - id: "my-003"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["auto-increment", "last-insert-id"]
+    question:
+      text:
+        en: "How does AUTO_INCREMENT work in MySQL? How do you get the last inserted ID?"
+        ru: "Как работает AUTO_INCREMENT в MySQL? Как получить ID последней вставленной строки?"
+      code: null
+    follow_ups:
+      en:
+        - "What happens to auto-increment values on rollback?"
+        - "How do you set a custom starting value for AUTO_INCREMENT?"
+        - "What is the difference between LAST_INSERT_ID() and max(id)?"
+      ru:
+        - "Что происходит со значениями auto-increment при откате транзакции?"
+        - "Как задать начальное значение для AUTO_INCREMENT?"
+        - "В чём разница между LAST_INSERT_ID() и max(id)?"
+    expected_points:
+      - "AUTO_INCREMENT generates unique sequential IDs"
+      - "LAST_INSERT_ID() returns the last ID for the current connection"
+      - "Rolled back transactions still consume auto-increment values"
+      - "Use LAST_INSERT_ID() — max(id) is not connection-safe"
+
+  - id: "my-004"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["charset", "collation"]
+    question:
+      text:
+        en: "What are character sets and collations in MySQL? How do they affect string comparison?"
+        ru: "Что такое наборы символов (charset) и сравнения (collation) в MySQL? Как они влияют на сравнение строк?"
+      code: null
+    follow_ups:
+      en:
+        - "What is utf8mb4 and why is it preferred over utf8?"
+        - "How does collation affect ORDER BY on string columns?"
+        - "What is the default charset/collation in modern MySQL?"
+      ru:
+        - "Что такое utf8mb4 и почему он предпочтительнее utf8?"
+        - "Как collation влияет на ORDER BY по строковым столбцам?"
+        - "Какие charset/collation по умолчанию в современном MySQL?"
+    expected_points:
+      - "Charset: encoding for storing characters (utf8mb4, latin1)"
+      - "Collation: rules for comparing characters (ci = case insensitive, bin = binary)"
+      - "utf8mb4 supports full Unicode (emojis, special characters)"
+      - "utf8mb4_unicode_ci or utf8mb4_0900_ai_ci are modern defaults"
+
+  - id: "my-005"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["mysql-cli", "basic-ops"]
+    question:
+      text:
+        en: "How do you create and manage databases and users in MySQL?"
+        ru: "Как создавать и управлять базами данных и пользователями в MySQL?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between GRANT ALL and specific privileges?"
+        - "How do you revoke privileges?"
+        - "What is FLUSH PRIVILEGES and when is it needed?"
+      ru:
+        - "В чём разница между GRANT ALL и конкретными привилегиями?"
+        - "Как отозвать привилегии?"
+        - "Что такое FLUSH PRIVILEGES и когда это нужно?"
+    expected_points:
+      - "CREATE DATABASE with charset/collation options"
+      - "CREATE USER with password, then GRANT permissions"
+      - "Grant specific privileges — not ALL — following least privilege"
+      - "FLUSH PRIVILEGES reloads grant tables (not always needed with GRANT)"

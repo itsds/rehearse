@@ -1,0 +1,78 @@
+category: "Kafka Client"
+track: "python"
+level: "junior"
+
+description: "Implement a Kafka producer in Python with JSON serialization, delivery callbacks, and async sending"
+
+tasks:
+  - id: "kafka-j-001"
+    difficulty: 2
+    tags: ["kafka", "producer", "json", "serialization", "confluent-kafka", "callbacks"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a Kafka producer that sends JSON messages to a topic
+          and handles delivery reports. The producer should use confluent-kafka-python.
+
+          Your task:
+          Complete the `produce` method so that it:
+          - Serializes the `data` dict to JSON (bytes)
+          - Sends the message with the given `key`
+          - Registers the provided `delivery_callback` for delivery confirmation
+          - Calls `poll(0)` after `produce()` to trigger callbacks
+
+          The `flush` method is already implemented.
+
+          Keep the existing producer config as-is.
+        ru: |
+          Контекст:
+          Вам нужно реализовать Kafka продюсера, который отправляет JSON-сообщения
+          и обрабатывает отчёты о доставке. Используется confluent-kafka-python.
+
+          Задача:
+          Реализуйте метод `produce` так, чтобы он:
+          - Сериализовал `data` (dict) в JSON (bytes)
+          - Отправлял сообщение с указанным `key`
+          - Регистрировал `delivery_callback` для подтверждения доставки
+          - Вызывал `poll(0)` после `produce()`
+
+          Метод `flush` уже реализован. Конфигурацию продюсера не меняйте.
+      starter_code: |
+        import json
+        from confluent_kafka import Producer
+
+
+        class JsonProducer:
+            def __init__(self, bootstrap_servers="localhost:9092"):
+                self.conf = {
+                    "bootstrap.servers": bootstrap_servers,
+                    "client.id": "py-producer",
+                }
+                self.producer = Producer(self.conf)
+
+            def produce(self, topic, key, data, delivery_callback):
+                # TODO: serialize data to JSON bytes, produce with callback, poll(0)
+                pass
+
+            def flush(self, timeout=None):
+                self.producer.flush(timeout)
+
+
+        def delivery_report(err, msg):
+            if err:
+                print(f"Failed: {err}")
+            else:
+                print(f"Delivered to {msg.topic()}[{msg.partition()}] @ {msg.offset()}")
+
+
+        producer = JsonProducer()
+        producer.produce("events", key="alice", data={"user": "alice", "action": "login"}, delivery_callback=delivery_report)
+        producer.flush()
+    expected_points:
+      - "Serializes data dict to JSON bytes with json.dumps().encode()"
+      - "Calls producer.produce() with topic, key, value, and callback"
+      - "Calls producer.poll(0) after produce() to trigger callbacks"
+      - "flush() is separate and handles final delivery wait"

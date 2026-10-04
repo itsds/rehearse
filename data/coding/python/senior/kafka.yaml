@@ -1,0 +1,244 @@
+category: "Kafka Client Production"
+track: "python"
+level: "senior"
+
+description: "Implement exactly-once semantics, Avro serialization with Schema Registry, and parallel processing with multiprocessing"
+
+tasks:
+  - id: "kafka-s-001"
+    difficulty: 4
+    tags: ["kafka", "exactly-once", "idempotent", "transactions", "eos", "confluent-kafka"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a Kafka producer that guarantees exactly-once semantics
+          for producing messages to a topic. This involves configuring an idempotent
+          producer and using transactions.
+
+          Your task:
+          Complete the `TransactionalProducer` class so that:
+          - The producer is configured with idempotence enabled
+          - It uses a unique transactional.id
+          - It initializes transactions
+          - The `send` method wraps the produce in a transaction (begin, produce, commit)
+          - It handles transaction failures by aborting
+
+          Existing config parameters should be preserved.
+        ru: |
+          Контекст:
+          Нужно реализовать Kafka продюсера с exactly-once семантикой.
+
+          Задача:
+          Реализуйте класс `TransactionalProducer` так, чтобы:
+          - Продюсер был настроен с идемпотентностью
+          - Использовал уникальный transactional.id
+          - Инициализировал транзакции
+          - Метод `send` оборачивал отправку в транзакцию (begin, produce, commit)
+          - Ошибки транзакции обрабатывались через abort
+      starter_code: |
+        from confluent_kafka import Producer
+
+
+        class TransactionalProducer:
+            def __init__(self, bootstrap_servers, transactional_id):
+                # TODO: configure with enable.idempotence=True, transactional.id, and acks='all'
+                self.producer = None
+
+            def init(self):
+                """Initialize transactions."""
+                # TODO: init_transactions()
+                pass
+
+            def send(self, topic, key, value):
+                """Send a message within a transaction."""
+                # TODO: begin_transaction, produce, commit_transaction (or abort on error)
+                pass
+
+            def flush(self):
+                self.producer.flush()
+
+
+        # Usage:
+        # producer = TransactionalProducer('localhost:9092', 'producer-1')
+        # producer.init()
+        # producer.send('topic1', 'key1', b'value1')
+        # producer.flush()
+    expected_points:
+      - "Configures enable.idempotence=True and acks='all'"
+      - "Sets transactional.id in producer config"
+      - "Calls init_transactions() to initialize"
+      - "send() wraps produce in begin/commit_transaction"
+      - "On failure, calls abort_transaction() instead of commit"
+
+  - id: "kafka-s-003"
+    difficulty: 4
+    tags: ["kafka", "avro", "schema-registry", "serialization", "confluent-kafka"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement Avro serialization/deserialization with Confluent Schema Registry
+          for a Kafka producer and consumer.
+
+          Your task:
+          Complete the producer and consumer setup so that:
+          - The producer serializes messages using AvroSerializer with a Schema Registry client
+          - The consumer deserializes messages using AvroDeserializer
+          - The schema defines a "User" record with "name" (string) and "age" (int)
+          - The SerializationContext is properly set with the topic and MessageField
+
+          The Schema Registry URL, bootstrap servers, and the Avro schema are already defined.
+        ru: |
+          Контекст:
+          Нужно реализовать Avro сериализацию/десериализацию с Confluent Schema Registry.
+
+          Задача:
+          Реализуйте продюсера и консьюмера так, чтобы:
+          - Продюсер сериализовал сообщения через AvroSerializer
+          - Консьюмер десериализовал через AvroDeserializer
+          - Схема определяла запись "User" с полями "name" (string) и "age" (int)
+          - SerializationContext был правильно настроен
+      starter_code: |
+        from confluent_kafka import Producer, Consumer
+        from confluent_kafka.serialization import SerializationContext, MessageField
+        from confluent_kafka.schema_registry import SchemaRegistryClient
+        from confluent_kafka.schema_registry.avro import AvroSerializer, AvroDeserializer
+
+        schema_registry_conf = {"url": "http://localhost:8081"}
+        schema_registry_client = SchemaRegistryClient(schema_registry_conf)
+
+        value_schema_str = """
+        {
+          "type": "record",
+          "name": "User",
+          "fields": [
+            {"name": "name", "type": "string"},
+            {"name": "age", "type": "int"}
+          ]
+        }
+        """
+
+        # TODO: create AvroSerializer and AvroDeserializer
+
+        # Producer config
+        producer_conf = {"bootstrap.servers": "localhost:9092"}
+        producer = Producer(producer_conf)
+
+        user = {"name": "Alice", "age": 30}
+        # TODO: produce the message with Avro serializer
+
+        # Consumer config
+        consumer_conf = {"bootstrap.servers": "localhost:9092", "group.id": "avro-group"}
+        consumer = Consumer(consumer_conf)
+        consumer.subscribe(["users"])
+
+        msg = consumer.poll(1.0)
+        if msg:
+            # TODO: deserialize the message with Avro deserializer
+            pass
+
+        consumer.close()
+    expected_points:
+      - "Creates AvroSerializer with schema_registry_client and schema string"
+      - "Creates AvroDeserializer with schema_registry_client"
+      - "Producer calls produce with avro_serializer(user, SerializationContext('users', MessageField.VALUE))"
+      - "Consumer deserializes with avro_deserializer(msg.value(), SerializationContext('users', MessageField.VALUE))"
+      - "Schema Registry is used for schema storage and retrieval"
+
+  - id: "kafka-s-004"
+    difficulty: 4
+    tags: ["kafka", "multiprocessing", "high-throughput", "parallel-processing", "backpressure"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement parallel Kafka message processing using multiprocessing.
+          One consumer process reads messages and distributes them to worker processes
+          via a queue.
+
+          Your task:
+          Complete the implementation so that:
+          - The consumer reads messages from Kafka and puts them into the multiprocessing queue
+          - Worker processes take messages from the queue and process them
+          - The queue is bounded (maxsize=1000) for backpressure
+          - Workers can be gracefully stopped by sending None sentinels
+          - The consumer commits offsets periodically (not after each message)
+
+          The worker function skeleton and the main function are partially implemented.
+        ru: |
+          Контекст:
+          Нужно реализовать параллельную обработку Kafka сообщений через multiprocessing.
+
+          Задача:
+          Реализуйте: один процесс-консьюмер читает из Kafka и распределяет сообщения
+          в воркер-процессы через очередь.
+          - Очередь ограничена (maxsize=1000) для backpressure
+          - Воркеры завершаются при получении None
+          - Consumer коммитит офсеты периодически
+      starter_code: |
+        import multiprocessing as mp
+        from confluent_kafka import Consumer
+        import time
+        import logging
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def worker_process(in_queue, worker_id):
+            """Take messages from queue and process them."""
+            while True:
+                msg = in_queue.get()
+                if msg is None:
+                    break
+                # TODO: simulate processing (time.sleep(0.1)), log result
+                pass
+
+
+        def main():
+            queue = mp.Queue(maxsize=1000)
+
+            # Start worker processes
+            num_workers = 4
+            workers = [
+                mp.Process(target=worker_process, args=(queue, i))
+                for i in range(num_workers)
+            ]
+            for w in workers:
+                w.start()
+
+            # Consumer process
+            consumer = Consumer({
+                "bootstrap.servers": "localhost:9092",
+                "group.id": "mp-group",
+                "enable.auto.commit": False,
+            })
+            consumer.subscribe(["topic"])
+
+            # TODO: poll loop - get messages, put in queue, commit periodically
+            try:
+                pass
+            finally:
+                # Stop workers
+                for _ in workers:
+                    queue.put(None)
+                for w in workers:
+                    w.join()
+                consumer.close()
+
+
+        if __name__ == "__main__":
+            main()
+    expected_points:
+      - "Worker processes loop reading from queue and processing"
+      - "Main consumer polls Kafka and puts messages into the queue"
+      - "Queue is bounded (maxsize=1000) for backpressure"
+      - "Workers are stopped via None sentinel"
+      - "Offsets are committed periodically (not per message)"

@@ -1,0 +1,68 @@
+category: Kafka Architecture
+track: kafka
+level: senior
+description: KRaft cluster metadata, stream processing, and platform architecture
+questions:
+- id: karch-s-001
+  type: knowledge
+  difficulty: 4
+  tags:
+  - kafka
+  - zookeeper
+  - kraft
+  - metadata
+  - quorum
+  question:
+    text:
+      en: What was the role of ZooKeeper in Kafka? What problems did it cause? How does KRaft (Kafka Raft) replace ZooKeeper?
+        Explain the new controller quorum and metadata topic.
+      ru: Какова была роль ZooKeeper в Kafka? Какие проблемы он вызывал? Как KRaft (Kafka Raft) заменяет ZooKeeper? Объясните
+        новый кворум контроллеров и мета-топик.
+    code: null
+  follow_ups:
+    en:
+    - What is the metadata topic and how is it replicated?
+    - How to migrate from ZooKeeper to KRaft?
+    - What are the performance improvements?
+    ru:
+    - Что такое мета-топик и как он реплицируется?
+    - Как мигрировать с ZooKeeper на KRaft?
+    - Какие улучшения производительности?
+  expected_points:
+  - ZooKeeper stored metadata (broker list, topics, quotas, ACL)
+  - 'Problems: external dependency, size limit (1 MB per znode), slow recovery'
+  - 'KRaft: controllers form a quorum via Raft, metadata stored in an internal event topic'
+  - 'Controllers: one active leader, others are observers'
+  - No separate ZooKeeper cluster, simplified architecture
+  - Supports millions of partitions (ZooKeeper limited to ~200k)
+- id: karch-s-002
+  type: knowledge
+  difficulty: 4
+  tags:
+  - kafka
+  - stream-processing
+  - ksqldb
+  - kafka-streams
+  question:
+    text:
+      en: What is Kafka Streams and ksqlDB? How do they differ from ordinary consumers? Explain KStream, KTable, GlobalKTable,
+        and windowed joins. When to use ksqlDB vs Kafka Streams?
+      ru: Что такое Kafka Streams и ksqlDB? Чем они отличаются от обычных консьюмеров? Объясните KStream, KTable, GlobalKTable
+        и оконные джойны. Когда использовать ksqlDB вместо Kafka Streams?
+    code: null
+  follow_ups:
+    en:
+    - What is state store and changelog topic?
+    - How does fault tolerance work in Kafka Streams?
+    - What is interactive queries (queryable state)?
+    ru:
+    - Что такое state store и changelog topic?
+    - Как работает отказоустойчивость в Kafka Streams?
+    - Что такое интерактивные запросы (queryable state)?
+  expected_points:
+  - 'Kafka Streams: stream processing library with exactly-once, event-time, and window operations'
+  - 'KStream: record stream (each message is processed)'
+  - 'KTable: changelog table (latest state per key)'
+  - 'GlobalKTable: full topic copy on each node'
+  - 'ksqlDB: declarative SQL engine (built on Kafka Streams)'
+  - ksqlDB for analysts and simple pipelines; Kafka Streams for complex JVM logic

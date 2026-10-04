@@ -1,0 +1,176 @@
+category: "Database Design"
+track: "database"
+level: "middle"
+
+description: "Intermediate database design: normalization trade-offs, partitioning, sharding, and schema patterns"
+
+questions:
+  - id: "dd-001"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["normalization", "denormalization"]
+    question:
+      text:
+        en: "When would you denormalize a database schema? What techniques exist?"
+        ru: "Когда имеет смысл денормализовать схему базы данных? Какие приёмы существуют?"
+      code: null
+    follow_ups:
+      en:
+        - "What performance problems does denormalization solve?"
+        - "How do you maintain data consistency in a denormalized schema?"
+        - "What is the difference between denormalization and pre-aggregation?"
+      ru:
+        - "Какие проблемы производительности решает денормализация?"
+        - "Как поддерживать согласованность данных в денормализованной схеме?"
+        - "В чём разница между денормализацией и предагрегацией?"
+    expected_points:
+      - "Denormalize for read-heavy workloads — fewer JOINs"
+      - "Add redundant columns or pre-computed summary tables"
+      - "Use triggers or application logic to maintain consistency"
+      - "Denormalization trades write complexity for read speed"
+
+  - id: "dd-002"
+    type: "knowledge"
+    difficulty: 4
+    tags: ["partitioning", "table-partitioning"]
+    question:
+      text:
+        en: "What is table partitioning? How does it differ from sharding?"
+        ru: "Что такое секционирование (partitioning) таблиц? Чем оно отличается от шардирования?"
+      code: null
+    follow_ups:
+      en:
+        - "What partition types exist (RANGE, LIST, HASH)?"
+        - "How does partition pruning improve query performance?"
+        - "How do you manage partitions over time (time-based partitioning)?"
+      ru:
+        - "Какие типы секций существуют (RANGE, LIST, HASH)?"
+        - "Как partition pruning ускоряет запросы?"
+        - "Как управлять секциями со временем (секционирование по времени)?"
+    expected_points:
+      - "Partitioning splits a table into segments within the same database"
+      - "Sharding distributes data across multiple database instances"
+      - "RANGE: by date range; LIST: by discrete values; HASH: by hash function"
+      - "Partition pruning: optimizer skips irrelevant partitions"
+
+  - id: "dd-003"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["index-strategies", "composite-indexes"]
+    question:
+      text:
+        en: "How do you design an effective indexing strategy? What are composite indexes and column order?"
+        ru: "Как спроектировать эффективную стратегию индексов? Что такое составные индексы и порядок столбцов?"
+      code: null
+    follow_ups:
+      en:
+        - "How does column order in a composite index affect query performance?"
+        - "What is a covering index and why is it powerful?"
+        - "How do partial indexes (PostgreSQL) work?"
+      ru:
+        - "Как порядок столбцов в составном индексе влияет на производительность?"
+        - "Что такое covering index и почему он эффективен?"
+        - "Как работают частичные индексы (PostgreSQL)?"
+    expected_points:
+      - "Index columns used in WHERE, JOIN, and ORDER BY"
+      - "Composite index: order columns by selectivity (most selective first)"
+      - "Covering index: includes all columns needed by query (index-only scan)"
+      - "Partial index: WHERE clause limits indexed rows"
+
+  - id: "dd-004"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["polymorphic", "inheritance-patterns"]
+    question:
+      text:
+        en: "How do you model polymorphic associations and inheritance in relational databases?"
+        ru: "Как моделировать полиморфные связи и наследование в реляционных базах данных?"
+      code: null
+    follow_ups:
+      en:
+        - "What is single table inheritance (STI) vs class table inheritance (CTI)?"
+        - "What are the trade-offs of polymorphic associations (nullable foreign keys)?"
+        - "How do ORMs (Django, SQLAlchemy) handle inheritance mapping?"
+      ru:
+        - "Что такое single table inheritance (STI) и class table inheritance (CTI)?"
+        - "Какие компромиссы у полиморфных связей (nullable foreign keys)?"
+        - "Как ORM (Django, SQLAlchemy) маппят наследование?"
+    expected_points:
+      - "STI: one table with nullable columns for subclass-specific fields"
+      - "CTI: one table per class, joined on shared primary key"
+      - "Polymorphic associations: two columns (type + id) referencing different tables"
+      - "Each approach has trade-offs between query simplicity and schema clarity"
+
+  - id: "dd-005"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["slow-schema-change", "migrations"]
+    question:
+      text:
+        en: "How do you handle schema migrations in production with zero downtime?"
+        ru: "Как выполнять миграции схемы в продакшене без простоя?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the expand-migrate-contract pattern?"
+        - "How do you rename a column without downtime?"
+        - "How do large table migrations affect replication lag?"
+      ru:
+        - "Что такое паттерн expand-migrate-contract?"
+        - "Как переименовать столбец без простоя?"
+        - "Как крупные миграции таблиц влияют на лаг репликации?"
+    expected_points:
+      - "Expand: add new column/table alongside old one"
+      - "Migrate: backfill data, update application to use new schema"
+      - "Contract: remove old column/table when no longer needed"
+      - "Use pt-online-schema-change (Percona) or gh-ost for large tables"
+
+  - id: "dd-006"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["ORM", "SQLAlchemy", "metadata"]
+    question:
+      text:
+        en: "What is Object-Relational Mapping (ORM)? What is `Metadata` in SQLAlchemy?"
+        ru: "Что такое объектно-реляционное отображение (ORM)? Что представляет собой `Metadata` в SQLAlchemy?"
+      code: null
+    follow_ups:
+      en:
+        - "What are the benefits and drawbacks of using an ORM?"
+        - "How does SQLAlchemy's Metadata object work?"
+        - "What is the difference between SQLAlchemy Core and ORM?"
+      ru:
+        - "Какие преимущества и недостатки использования ORM?"
+        - "Как работает объект Metadata в SQLAlchemy?"
+        - "В чём разница между SQLAlchemy Core и ORM?"
+    expected_points:
+      - "ORM: maps database tables to objects in programming language"
+      - "Metadata: container of tables, columns, constraints, and other schema elements"
+      - "SQLAlchemy Metadata provides a single source of truth for schema"
+      - "Can generate SQL from metadata or reflect schema from database"
+      - "Core: SQL expression language, ORM: object mapping on top of Core"
+
+  - id: "dd-007"
+    type: "knowledge"
+    difficulty: 4
+    tags: ["partitioning", "replication", "sharding", "scaling"]
+    question:
+      text:
+        en: "What are partitioning, replication and sharding? What are their main goals?"
+        ru: "Что такое партиционирование, репликация и шардирование? В чём их основные цели?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between horizontal and vertical partitioning?"
+        - "What are the types of replication (master-slave, master-master)?"
+        - "What are the challenges of sharding?"
+      ru:
+        - "В чём разница между горизонтальным и вертикальным партиционированием?"
+        - "Какие типы репликации (master-slave, master-master)?"
+        - "Какие сложности у шардирования?"
+    expected_points:
+      - "Partitioning: splits table within same database for performance and maintenance"
+      - "Replication: copies data across multiple servers for availability and read scaling"
+      - "Sharding: distributes data across different database instances for write scaling"
+      - "Goals: improve performance, availability, scalability, and manageability"
+      - "Each technique addresses different scaling challenges"

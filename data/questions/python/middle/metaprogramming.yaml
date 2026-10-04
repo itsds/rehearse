@@ -1,0 +1,232 @@
+category: "Metaprogramming"
+track: "python"
+level: "middle"
+
+description: "Python metaprogramming: metaclasses, descriptors, decorators, introspection, and code generation"
+
+questions:
+  - id: "meta-001"
+    type: "knowledge"
+    difficulty: 4
+    tags: ["metaclasses", "type"]
+    question:
+      text:
+        en: "What are metaclasses in Python? How do you create one and when would you use them?"
+        ru: "Что такое метаклассы в Python? Как создать метакласс и когда их использовать?"
+      code: null
+    follow_ups:
+      en:
+        - "How does type() work as a metaclass?"
+        - "What is the difference between __new__ and __init__ in a metaclass?"
+        - "How does Django or SQLAlchemy use metaclasses?"
+      ru:
+        - "Как type() работает в качестве метакласса?"
+        - "В чём разница между __new__ и __init__ в метаклассе?"
+        - "Как Django или SQLAlchemy используют метаклассы?"
+    expected_points:
+      - "Metaclasses are classes of classes — they control class creation"
+      - "Define by inheriting from type and overriding __new__ or __init__"
+      - "Use cases: ORM model registration, validation, API auto-generation"
+      - "Metaclasses are powerful but often overkill — prefer decorators or descriptors"
+
+  - id: "meta-002"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["descriptors", "__get__", "__set__"]
+    question:
+      text:
+        en: "What are descriptors in Python? How do __get__, __set__, and __delete__ work?"
+        ru: "Что такое дескрипторы в Python? Как работают __get__, __set__ и __delete__?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between a data descriptor and non-data descriptor?"
+        - "How does @property use the descriptor protocol?"
+        - "How does __slots__ relate to descriptors?"
+      ru:
+        - "В чём разница между дескриптором данных и дескриптором не-данных?"
+        - "Как @property использует протокол дескрипторов?"
+        - "Как __slots__ связан с дескрипторами?"
+    expected_points:
+      - "Descriptor: object with __get__, __set__, or __delete__"
+      - "Data descriptors (__set__) override instance dict in attribute lookup"
+      - "Non-data descriptors (only __get__) are lower priority than instance dict"
+      - "@property is a high-level descriptor; __slots__ creates descriptors"
+
+  - id: "meta-003"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["decorators", "wraps"]
+    question:
+      text:
+        en: "What is the difference between a function decorator and a class-based decorator? When would you use each?"
+        ru: "В чём разница между декоратором-функцией и декоратором-классом? Когда использовать каждый из них?"
+      code: null
+    follow_ups:
+      en:
+        - "How do you create a decorator with arguments?"
+        - "Why is functools.wraps important?"
+        - "Can you stack multiple decorators and in what order do they apply?"
+      ru:
+        - "Как создать декоратор с аргументами?"
+        - "Почему важен functools.wraps?"
+        - "Можно ли накладывать несколько декораторов и в каком порядке?"
+    expected_points:
+      - "Function decorators are simpler and more Pythonic for typical cases"
+      - "Class decorators are better when you need to maintain state"
+      - "Decorators with args need a factory function: @decorator(args)"
+      - "functools.wraps preserves metadata (__name__, __doc__)"
+
+  - id: "meta-004"
+    type: "knowledge"
+    difficulty: 4
+    tags: ["__init_subclass__", "class-hooks"]
+    question:
+      text:
+        en: "How does __init_subclass__ work? How is it different from a metaclass?"
+        ru: "Как работает __init_subclass__? Чем он отличается от метакласса?"
+      code: |
+        class PluginBase:
+            registry = {}
+
+            def __init_subclass__(cls, **kwargs):
+                super().__init_subclass__(**kwargs)
+                PluginBase.registry[cls.__name__] = cls
+
+        class MyPlugin(PluginBase):
+            pass
+    follow_ups:
+      en:
+        - "When would you choose __init_subclass__ over a metaclass?"
+        - "Can you pass keyword arguments to __init_subclass__?"
+        - "How does __set_name__ in descriptors work?"
+      ru:
+        - "Когда выбрать __init_subclass__ вместо метакласса?"
+        - "Можно ли передавать именованные аргументы в __init_subclass__?"
+        - "Как работает __set_name__ в дескрипторах?"
+    expected_points:
+      - "__init_subclass__ is called when a subclass is created"
+      - "It's simpler than metaclasses for many common patterns"
+      - "Useful for plugin systems, registration, and class configuration"
+      - "Python 3.6+ feature that reduces the need for custom metaclasses"
+
+  - id: "meta-005"
+    type: "knowledge"
+    difficulty: 4
+    tags: ["AST", "code-generation"]
+    question:
+      text:
+        en: "What is AST (Abstract Syntax Tree) in Python? How can you use it for code analysis or transformation?"
+        ru: "Что такое AST (Abstract Syntax Tree) в Python? Как использовать его для анализа или трансформации кода?"
+      code: null
+    follow_ups:
+      en:
+        - "How do you parse source code into an AST?"
+        - "What is the difference between ast.parse, ast.walk, and ast.NodeTransformer?"
+        - "What are real-world uses of AST manipulation in Python?"
+      ru:
+        - "Как разобрать исходный код в AST?"
+        - "В чём разница между ast.parse, ast.walk и ast.NodeTransformer?"
+        - "Какие есть примеры использования AST в реальных проектах на Python?"
+    expected_points:
+      - "AST is a tree representation of Python source code"
+      - "ast.parse() converts source to AST; ast.dump() visualizes it"
+      - "ast.NodeTransformer allows modifying nodes for code generation"
+      - "Uses: linters, formatters (Black), type checkers, transpilers"
+
+  - id: "meta-006"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["inspect", "introspection"]
+    question:
+      text:
+        en: "What tools does Python's inspect module provide for runtime introspection?"
+        ru: "Какие инструменты предоставляет модуль inspect для интроспекции во время выполнения?"
+      code: null
+    follow_ups:
+      en:
+        - "How do you get the source code of a function at runtime?"
+        - "How does inspect.stack() work for debugging?"
+        - "What is inspect.signature() used for?"
+      ru:
+        - "Как получить исходный код функции во время выполнения?"
+        - "Как inspect.stack() работает для отладки?"
+        - "Для чего используется inspect.signature()?"
+    expected_points:
+      - "inspect.getsource() returns source code of an object"
+      - "inspect.signature() returns parameters and annotations"
+      - "inspect.getmembers() lists all attributes of an object"
+      - "inspect.stack() gets the current call stack for debugging"
+
+  - id: "meta-007"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["__getattr__", "__getattribute__"]
+    question:
+      text:
+        en: "What is the difference between __getattr__ and __getattribute__? How do they affect attribute lookup?"
+        ru: "В чём разница между __getattr__ и __getattribute__? Как они влияют на поиск атрибутов?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the order of attribute lookup in Python?"
+        - "How would you implement lazy initialization using __getattr__?"
+        - "Why is __getattribute__ dangerous to override?"
+      ru:
+        - "Каков порядок поиска атрибутов в Python?"
+        - "Как реализовать ленивую инициализацию с помощью __getattr__?"
+        - "Почему переопределение __getattribute__ опасно?"
+    expected_points:
+      - "__getattribute__ is called unconditionally on every attribute access"
+      - "__getattr__ is only called when normal lookup fails"
+      - "Override __getattr__ for dynamic attributes (safe)"
+      - "Override __getattribute__ carefully — must call super() to avoid recursion"
+
+  - id: "meta-008"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["magic-methods", "dunder", "context-manager"]
+    question:
+      text:
+        en: "What are magic (dunder) methods? Which of them are called when an instance of a class is created? Which magic methods does a context manager implement (the `with` protocol) and why is it used?"
+        ru: "Что такое магические (dunder) методы? Какие из них вызываются при создании экземпляра класса? Какие магические методы реализует контекстный менеджер (протокол `with`) и для чего он нужен?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between __init__ and __new__?"
+        - "What are some common magic methods for operator overloading?"
+        - "How do context managers help with resource management?"
+      ru:
+        - "В чём разница между __init__ и __new__?"
+        - "Какие есть общие магические методы для перегрузки операторов?"
+        - "Как контекстные менеджеры помогают управлять ресурсами?"
+    expected_points:
+      - "Magic/dunder methods: __init__, __str__, __repr__, __add__, etc."
+      - "Instance creation: __new__ creates instance, __init__ initializes it"
+      - "Context manager protocol: __enter__ (setup), __exit__ (cleanup)"
+      - "Context managers ensure resources are properly released (files, locks, connections)"
+      - "Use 'with' statement for automatic cleanup even on exceptions"
+
+  - id: "meta-009"
+    type: "knowledge"
+    difficulty: 4
+    tags: ["descriptors", "property", "self-binding"]
+    question:
+      text:
+        en: "What are descriptors? How when calling a method through a class instance the instance automatically gets passed as the first argument (`self`)? What is the built-in `property` used for?"
+        ru: "Что такое дескрипторы? Как при вызове метода через экземпляр класса сам экземпляр автоматически передаётся первым аргументом (`self`)? Для чего используется встроенное свойство `property`?"
+      code: null
+    follow_ups:
+      en:
+        - "How does the descriptor protocol enable method binding?"
+        - "What is the difference between data and non-data descriptors?"
+        - "How does @property relate to descriptors?"
+      ru:
+        - "Как протокол дескрипторов обеспечивает связывание методов?"
+        - "В чём разница между дескрипторами данных и не-данных?"
+        - "Как @property связано с дескрипторами?"
+    expected_points:
+      - "Descriptors: objects with __get__, __set__, or __delete__ methods"
+      - "Method binding: functions are non-data descriptors, __get__ returns bound method with self"
+      - "property is a built-in descriptor for computed attributes with getter/setter"
+      - "property simplifies attribute access control without getter/setter methods"

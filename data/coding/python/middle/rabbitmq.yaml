@@ -1,0 +1,157 @@
+category: "RabbitMQ Client Development"
+track: "python"
+level: "middle"
+
+description: "Implement RabbitMQ consumers with manual acknowledgements and async consumption with aio-pika"
+
+tasks:
+  - id: "rabbitmq-m-001"
+    difficulty: 3
+    tags: ["rabbitmq", "pika", "consumer", "manual-ack", "qos", "graceful-shutdown"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a RabbitMQ consumer with manual acknowledgements,
+          QoS prefetch count=1, and graceful shutdown on SIGINT.
+
+          Your task:
+          Complete the `callback` function and the `consume` method so that:
+          - The callback processes the message body
+          - If processing succeeds, it sends basic_ack
+          - If processing fails, it sends basic_nack with requeue=True
+          - The consumer sets QoS prefetch_count=1 before consuming
+          - SIGINT triggers basic_cancel and connection close
+
+          The connection setup and signal handler skeleton are provided.
+        ru: |
+          Контекст:
+          Нужно реализовать RabbitMQ консьюмера с ручными подтверждениями,
+          QoS prefetch count=1 и корректным завершением по SIGINT.
+
+          Задача:
+          Реализуйте callback-функцию и метод `consume` так, чтобы:
+          - Callback обрабатывал тело сообщения
+          - При успехе отправлял basic_ack
+          - При ошибке отправлял basic_nack с requeue=True
+          - Consumer устанавливал QoS prefetch_count=1
+          - SIGINT вызывал basic_cancel и закрытие соединения
+      starter_code: |
+        import pika
+        import signal
+        import sys
+        import logging
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        class AckConsumer:
+            def __init__(self, host="localhost"):
+                self.connection = pika.BlockingConnection(
+                    pika.ConnectionParameters(host)
+                )
+                self.channel = self.connection.channel()
+                self.channel.basic_qos(prefetch_count=1)
+
+            def callback(self, ch, method, properties, body):
+                """Process message, ack on success, nack on failure."""
+                # TODO: log body, simulate processing, ack/nack accordingly
+                pass
+
+            def consume(self, queue, consumer_tag="my_tag"):
+                """Start consuming with manual ack and signal handling."""
+                # TODO: register signal handler for SIGINT, basic_consume with auto_ack=False, start_consuming
+                pass
+
+            def close(self):
+                if self.connection and self.connection.is_open:
+                    self.connection.close()
+
+
+        consumer = AckConsumer()
+        try:
+            consumer.consume("task_queue")
+        except KeyboardInterrupt:
+            consumer.close()
+    expected_points:
+      - "Callback calls ch.basic_ack() on success"
+      - "Callback calls ch.basic_nack(requeue=True) on failure"
+      - "QoS prefetch_count=1 is set before consuming"
+      - "SIGINT handler cancels consumer and closes connection"
+      - "auto_ack=False is set on basic_consume"
+
+  - id: "rabbitmq-m-002"
+    difficulty: 3
+    tags: ["rabbitmq", "aio-pika", "asyncio", "fastapi", "backpressure", "semaphore"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement an async RabbitMQ consumer using aio-pika
+          integrated with FastAPI, with concurrency limiting via Semaphore.
+
+          Your task:
+          Complete the `process_message` coroutine and the `startup` event so that:
+          - The consumer connects to RabbitMQ using aio-pika with robust connection
+          - Sets QoS prefetch_count=20
+          - Declares a durable queue and consumes messages
+          - Each message is processed inside a Semaphore context (max 10 concurrent)
+          - Uses `message.process(requeue=False)` context manager for auto ack/nack
+
+          The FastAPI app skeleton is provided.
+        ru: |
+          Контекст:
+          Нужно реализовать асинхронного RabbitMQ консьюмера с aio-pika
+          в FastAPI приложении с ограничением конкурентности через Semaphore.
+
+          Задача:
+          Реализуйте корутину `process_message` и событие `startup` так, чтобы:
+          - Consumer подключался к RabbitMQ через aio-pika connect_robust
+          - Устанавливал QoS prefetch_count=20
+          - Объявлял durable очередь и запускал consume
+          - Каждое сообщение обрабатывалось в контексте Semaphore (макс. 10)
+          - Использовался `message.process(requeue=False)` для auto ack/nack
+      starter_code: |
+        from fastapi import FastAPI
+        import aio_pika
+        import asyncio
+        import logging
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+        app = FastAPI()
+        connection = None
+        semaphore = asyncio.Semaphore(10)
+
+
+        async def process_message(message: aio_pika.IncomingMessage):
+            """Process message with concurrency limiting."""
+            # TODO: use semaphore, use message.process(), log body, simulate work
+            pass
+
+
+        @app.on_event("startup")
+        async def startup():
+            """Connect to RabbitMQ, declare queue, start consuming."""
+            global connection
+            # TODO: connect_robust, create channel, set_qos, declare queue, consume
+            pass
+
+
+        @app.on_event("shutdown")
+        async def shutdown():
+            global connection
+            if connection:
+                await connection.close()
+    expected_points:
+      - "Uses aio_pika.connect_robust() for connection"
+      - "Sets QoS prefetch_count=20 on the channel"
+      - "Declares a durable queue"
+      - "Uses async with semaphore: for concurrency limiting"
+      - "Uses async with message.process(requeue=False): for auto ack/nack"

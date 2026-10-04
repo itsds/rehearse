@@ -1,0 +1,64 @@
+category: RabbitMQ Client Production
+track: python
+level: senior
+description: RPC patterns and DLX-based retry with exponential backoff
+questions:
+- id: rpy-s-001
+  type: knowledge
+  difficulty: 3
+  tags:
+  - python
+  - rabbitmq
+  - rpc
+  - pika
+  - async
+  question:
+    text:
+      en: How does the RPC pattern work over RabbitMQ? Explain the roles of correlation_id, reply_to queue,
+        timeout handling, and how to handle concurrent requests. Compare exclusive callback queues vs direct-reply-to.
+      ru: Как работает RPC паттерн поверх RabbitMQ? Объясните роли correlation_id, reply_to очереди,
+        обработки таймаута и конкурентных запросов. Сравните эксклюзивные callback-очереди и direct-reply-to.
+    code: null
+  follow_ups:
+    en:
+    - How to make RPC client async with aio-pika?
+    - What is the advantage of direct-reply-to over exclusive queue?
+    ru:
+    - Как сделать RPC клиента асинхронным с aio-pika?
+    - В чём преимущество direct-reply-to перед эксклюзивной очередью?
+  expected_points:
+  - Each request has a unique correlation_id; response carries the same ID
+  - reply_to is the queue where the server sends the response (can be temporary exclusive)
+  - 'direct-reply-to (amq.rabbitmq.reply-to): no queue creation needed, faster'
+  - Timeout via loop with process_data_events() or asyncio.wait_for()
+- id: rpy-s-002
+  type: knowledge
+  difficulty: 4
+  tags:
+  - python
+  - rabbitmq
+  - dlx
+  - retry
+  - delay
+  question:
+    text:
+      en: How does a retry pattern with dead-letter exchange (DLX) work in RabbitMQ? Explain the configuration
+        of main queue, retry queue with TTL, and how messages flow between them. What are the limitations
+        of TTL-based retry and how to implement exponential backoff?
+      ru: Как работает паттерн повтора с Dead Letter Exchange (DLX) в RabbitMQ? Объясните конфигурацию
+        основной очереди, очереди повтора с TTL и поток сообщений между ними. Каковы ограничения
+        TTL-подхода и как реализовать экспоненциальную задержку?
+    code: null
+  follow_ups:
+    en:
+    - How to increment delay on each retry (exponential backoff) using multiple retry queues?
+    - What are the limitations of TTL-based retry?
+    ru:
+    - Как увеличить задержку на каждой попытке (экспоненциальная задержка) с использованием нескольких очередей повтора?
+    - Каковы ограничения подхода с TTL?
+  expected_points:
+  - nack(requeue=false) sends message to the main queue DLX (retry_exchange)
+  - Retry queue has TTL; after expiry the message returns to main via DLX
+  - 'Exponential backoff: multiple retry queues with different TTLs and routing keys'
+  - 'Limits: max retries bounded by queue count; TTL queue blocks other messages during delay'
+  - 'Alternative: delayed exchange plugin is simpler but does not guarantee order'

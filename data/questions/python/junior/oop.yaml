@@ -1,0 +1,211 @@
+category: "Object-Oriented Programming"
+track: "python"
+level: "junior"
+
+description: "Python OOP: classes, inheritance, encapsulation, and special methods"
+
+questions:
+  - id: "oop-001"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["class", "instance", "self"]
+    question:
+      text:
+        en: "What is the difference between a class and an instance in Python? What is 'self'?"
+        ru: "В чём разница между классом и экземпляром в Python? Что такое 'self'?"
+      code: null
+    follow_ups:
+      en:
+        - "Can you name the methods that are automatically called when creating an instance?"
+        - "What is the difference between method, classmethod, and staticmethod?"
+      ru:
+        - "Какие методы автоматически вызываются при создании экземпляра?"
+        - "В чём разница между method, classmethod и staticmethod?"
+    expected_points:
+      - "Class is a blueprint; instance is a concrete object created from it"
+      - "'self' refers to the instance itself — passed automatically as first arg"
+      - "__init__ is the constructor, __new__ creates the instance"
+      - "Methods take self, classmethods take cls, staticmethods take neither"
+
+  - id: "oop-002"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["inheritance", "MRO"]
+    question:
+      text:
+        en: "How does inheritance work in Python? What is Method Resolution Order (MRO)?"
+        ru: "Как работает наследование в Python? Что такое порядок разрешения методов (MRO)?"
+      code: null
+    follow_ups:
+      en:
+        - "How does super() work in multiple inheritance?"
+        - "How can you view the MRO of a class?"
+      ru:
+        - "Как работает super() при множественном наследовании?"
+        - "Как можно посмотреть MRO класса?"
+    expected_points:
+      - "Child class inherits all attributes from parent"
+      - "MRO determines method lookup order using C3 linearization"
+      - "Use Class.__mro__ or Class.mro() to inspect"
+      - "super() follows MRO, not just the parent class"
+
+  - id: "oop-003"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["encapsulation", "private", "protected"]
+    question:
+      text:
+        en: "How does Python handle visibility and encapsulation? Explain single underscore, double underscore, and name mangling."
+        ru: "Как Python обрабатывает видимость и инкапсуляцию? Объясните одинарное подчёркивание, двойное подчёркивание и name mangling."
+      code: null
+    follow_ups:
+      en:
+        - "Are private attributes truly private in Python?"
+        - "What happens to __private when a subclass is created?"
+      ru:
+        - "Являются ли приватные атрибуты действительно приватными в Python?"
+        - "Что происходит с __private при создании подкласса?"
+    expected_points:
+      - "Single underscore _: convention for 'protected' (internal use)"
+      - "Double underscore __: triggers name mangling to _Classname__attr"
+      - "Name mangling prevents accidental overrides in subclasses"
+      - "Nothing is truly private in Python — it's all about convention"
+
+  - id: "oop-004"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["property", "getter-setter", "descriptors"]
+    question:
+      text:
+        en: "How do you create getters and setters in Python? Explain the @property decorator."
+        ru: "Как создавать геттеры и сеттеры в Python? Объясните декоратор @property."
+      code: null
+    follow_ups:
+      en:
+        - "When would you use @property instead of a regular attribute?"
+        - "What is the difference between @property and descriptors?"
+      ru:
+        - "Когда использовать @property вместо обычного атрибута?"
+        - "В чём разница между @property и дескрипторами?"
+    expected_points:
+      - "@property turns a method into a read-only attribute"
+      - "@<name>.setter and @<name>.deleter provide write and delete"
+      - "Useful for computed attributes and validation"
+      - "Properties are high-level descriptors"
+
+  - id: "oop-005"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["dataclasses", "__slots__"]
+    question:
+      text:
+        en: "What are dataclasses in Python? How do they differ from regular classes and __slots__?"
+        ru: "Что такое dataclasses в Python? Чем они отличаются от обычных классов и __slots__?"
+      code: null
+    follow_ups:
+      en:
+        - "What does frozen=True do in a dataclass?"
+        - "How does __slots__ improve memory usage?"
+        - "When would you choose dataclass vs namedtuple vs plain class?"
+      ru:
+        - "Что делает frozen=True в dataclass?"
+        - "Как __slots__ улучшает использование памяти?"
+        - "Когда выбрать dataclass vs namedtuple vs обычный класс?"
+    expected_points:
+      - "dataclasses auto-generate __init__, __repr__, __eq__, etc."
+      - "__slots__ defines fixed set of attributes, saving memory"
+      - "dataclasses support type hints, default values, and field metadata"
+      - "frozen=True makes the instance immutable"
+
+  - id: "oop-006"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["composition", "aggregation"]
+    question:
+      text:
+        en: "Explain the difference between inheritance and composition. When should you prefer composition?"
+        ru: "Объясните разницу между наследованием и композицией. Когда следует предпочесть композицию?"
+      code: null
+    follow_ups:
+      en:
+        - "What is 'favor composition over inheritance'?"
+        - "How does the Strategy pattern use composition?"
+      ru:
+        - "Что означает 'предпочитайте композицию наследованию'?"
+        - "Как паттерн Стратегия использует композицию?"
+    expected_points:
+      - "Inheritance: 'is-a' relationship, creates tight coupling"
+      - "Composition: 'has-a' relationship, more flexible"
+      - "Composition uses interfaces/abstract classes with delegation"
+      - "Prefer composition for behavior sharing across unrelated classes"
+
+  - id: "oop-007"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["abstract-class", "abc", "interfaces"]
+    question:
+      text:
+        en: "How do you create abstract classes in Python? What is the ABC module?"
+        ru: "Как создавать абстрактные классы в Python? Что такое модуль ABC?"
+      code: null
+    follow_ups:
+      en:
+        - "Can you instantiate an abstract class?"
+        - "What is the difference between abstractmethod and NotImplementedError?"
+      ru:
+        - "Можно ли создать экземпляр абстрактного класса?"
+        - "В чём разница между abstractmethod и NotImplementedError?"
+    expected_points:
+      - "ABC classes cannot be instantiated directly"
+      - "@abstractmethod forces subclasses to implement the method"
+      - "Use ABCs to define interfaces and enforce contracts"
+
+  - id: "oop-008"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["OOP", "MRO", "super"]
+    question:
+      text:
+        en: "What is object-oriented programming and what are its main principles? What is MRO (Method Resolution Order) and what is `super()` used for?"
+        ru: "Что такое объектно-ориентированное программирование и назовите его основные принципы. Что такое MRO (порядок разрешения методов) и для чего используется `super()`?"
+      code: null
+    follow_ups:
+      en:
+        - "What are the four main principles of OOP?"
+        - "How does Python's MRO differ from other languages?"
+        - "What happens when you call super() in a class hierarchy?"
+      ru:
+        - "Какие четыре основных принципа ООП?"
+        - "Чем MRO в Python отличается от других языков?"
+        - "Что происходит при вызове super() в иерархии классов?"
+    expected_points:
+      - "OOP principles: Encapsulation, Abstraction, Inheritance, Polymorphism"
+      - "MRO: Method Resolution Order - determines method lookup in inheritance hierarchy"
+      - "Python uses C3 linearization algorithm for MRO"
+      - "super() delegates method calls to parent classes following MRO"
+      - "super() is essential for cooperative multiple inheritance"
+
+  - id: "oop-009"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["classmethod", "staticmethod", "abstract", "slots"]
+    question:
+      text:
+        en: "How do class methods (`@classmethod`) differ from static methods (`@staticmethod`)? What methods are called abstract? What is `__slots__` and why is it needed?"
+        ru: "Чем отличаются методы класса (`@classmethod`) от статических методов (`@staticmethod`)? Какие методы называют абстрактными? Что такое `__slots__` и зачем он нужен?"
+      code: null
+    follow_ups:
+      en:
+        - "When would you use @classmethod vs @staticmethod?"
+        - "What is an abstract method and how is it defined?"
+        - "What are the trade-offs of using __slots__?"
+      ru:
+        - "Когда использовать @classmethod vs @staticmethod?"
+        - "Что такое абстрактный метод и как он определяется?"
+        - "Какие компромиссы при использовании __slots__?"
+    expected_points:
+      - "@classmethod: receives class as first argument (cls), can access/modify class state"
+      - "@staticmethod: no implicit first argument, behaves like regular function but belongs to class"
+      - "Abstract methods: defined in abstract base classes with @abstractmethod, must be implemented by subclasses"
+      - "__slots__: restricts instance attributes to predefined set, saves memory by eliminating __dict__"
+      - "Use __slots__ for many instances of same class with fixed attributes"

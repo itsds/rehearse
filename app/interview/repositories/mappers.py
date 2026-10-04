@@ -1,0 +1,225 @@
+# Copyright 2026 GrillKit Contributors
+# SPDX-License-Identifier: Apache-2.0
+"""ORM ↔ domain ↔ read-model mappers for interview persistence."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+import json
+from typing import Any, cast
+
+from app.coding.domain.entities import CodingSection as DomainCodingSection
+from app.coding.repositories.mappers import coding_task_read_from_domain
+from app.interview.domain.entities import Interview as DomainInterview
+from app.interview.domain.entities import InterviewStatus
+from app.interview.domain.serialization import (
+    parse_overall_feedback,
+    parse_session_spec,
+    session_to_spec,
+)
+from app.interview.domain.value_objects import SessionMode
+from app.interview.schemas.interview import InterviewRead
+from app.shared.infrastructure.models import Interview as OrmInterview
+from app.theory.domain.entities import TheorySection as DomainTheorySection
+from app.theory.repositories.mappers import (
+    theory_section_from_orm,
+    theory_task_read_from_domain,
+)
+
+_EPOCH = datetime.min.replace(tzinfo=UTC)
+
+
+def _question_ids_to_json(question_ids: tuple[str, ...]) -> str:
+    """Serialize question IDs for persistence.
+
+    Args:
+        question_ids: Question IDs in display order.
+
+    Returns:
+        JSON array string.
+    """
+    return json.dumps(list(question_ids), separators=(",", ":"))
+
+
+def _task_ids_to_json(task_ids: tuple[str, ...]) -> str:
+    """Serialize task IDs for persistence.
+
+    Args:
+        task_ids: Task IDs in display order.
+
+    Returns:
+        JSON array string.
+    """
+    return json.dumps(list(task_ids), separators=(",", ":"))
+
+
+def interview_shell_from_orm(interview: OrmInterview) -> DomainInterview:
+    """Map an ORM interview row to a shell domain aggregate.
+
+    Args:
+        interview: SQLAlchemy Interview row.
+
+    Returns:
+        Immutable interview shell without section tasks.
+    """
+    status: InterviewStatus = (
+        "completed" if interview.status == "completed" else "active"
+    )
+    return DomainInterview(
+        id=interview.id,
+        locale=interview.locale or "en",
+        session_mode=cast(SessionMode, interview.session_mode),
+        selection=parse_session_spec(interview.selection_spec),
+        status=status,
+        overall_feedback=parse_overall_feedback(interview.overall_feedback),
+        started_at=interview.started_at,
+        completed_at=interview.completed_at,
+    )
+
+
+def compose_interview_read(
+    shell: DomainInterview,
+    theory: DomainTheorySection | None,
+    coding: DomainCodingSection | None = None,
+) -> InterviewRead:
+    """Compose an interview read model from shell and optional section aggregates.
+
+    Args:
+        shell: Interview shell aggregate.
+        theory: Theory section aggregate with tasks, if present.
+        coding: Coding section aggregate with tasks, if present.
+
+    Returns:
+        Immutable InterviewRead without a resolved display score.
+    """
+    answers = (
+        [theory_task_read_from_domain(task) for task in theory.tasks]
+        if theory is not None
+        else []
+    )
+    coding_tasks = (
+        [coding_task_read_from_domain(task) for task in coding.tasks]
+        if coding is not None
+        else []
+    )
+
+    # Prefer theory section metadata; fall back to coding when theory is absent.
+    locale = (
+        theory.locale
+        if theory is not None
+        else (coding.locale if coding is not None else shell.locale)
+    )
+    question_ids = (
+        _question_ids_to_json(theory.question_ids)
+        if theory is not None
+        else (_task_ids_to_json(coding.task_ids) if coding is not None else "[]")
+    )
+    question_count = (
+        theory.question_count
+        if theory is not None
+        else (coding.task_count if coding is not None else 0)
+    )
+    question_time_limit_seconds = (
+        theory.task_time_limit_seconds
+        if theory is not None
+        else (coding.task_time_limit_seconds if coding is not None else None)
+    )
+
+    return InterviewRead(
+        id=shell.id,
+        status=shell.status,
+        locale=locale,
+        selection_spec=session_to_spec(shell.selection),
+        question_ids=question_ids,
+        question_count=question_count,
+        question_time_limit_seconds=question_time_limit_seconds,
+        answers=answers,
+        coding_tasks=coding_tasks,
+        overall_feedback=shell.overall_feedback,
+        started_at=shell.started_at,
+        completed_at=shell.completed_at,
+    )
+
+
+def interview_from_orm(interview: OrmInterview) -> DomainInterview:
+    """Map an ORM interview row to a shell domain aggregate.
+
+    Args:
+        interview: SQLAlchemy Interview row.
+
+    Returns:
+        Interview shell aggregate.
+    """
+    return interview_shell_from_orm(interview)
+
+
+def interview_read_from_orm(
+    interview: OrmInterview,
+    *,
+    coding: DomainCodingSection | None = None,
+) -> InterviewRead:
+    """Map an ORM interview row and section aggregates to a read model.
+
+    Args:
+        interview: SQLAlchemy Interview with optional theory section loaded.
+        coding: Coding section aggregate for coding-only sessions.
+
+    Returns:
+        Composed interview read model.
+    """
+    shell = interview_shell_from_orm(interview)
+    theory = (
+        theory_section_from_orm(interview.theory_section)
+        if interview.theory_section is not None
+        else None
+    )
+    return compose_interview_read(shell, theory, coding)
+
+
+def interview_shell_to_orm(interview: DomainInterview) -> OrmInterview:
+    """Map a new interview shell to a detached ORM row.
+
+    Args:
+        interview: Domain shell from ``Interview.start_shell``.
+
+    Returns:
+        ORM Interview without nested section rows.
+    """
+    return OrmInterview(
+        id=interview.id,
+        locale=interview.locale,
+        selection_spec=session_to_spec(interview.selection),
+        session_mode=interview.session_mode,
+        status=interview.status,
+        overall_feedback=(
+            json.dumps(interview.overall_feedback, separators=(",", ":"))
+            if interview.overall_feedback is not None
+            else None
+        ),
+        started_at=interview.started_at,
+        completed_at=interview.completed_at,
+    )
+
+
+def interview_to_orm_fields(interview: DomainInterview) -> dict[str, Any]:
+    """Extract ORM-mutable interview shell fields from a domain aggregate.
+
+    Args:
+        interview: Domain interview shell aggregate.
+
+    Returns:
+        Dict of column names to values for partial ORM updates.
+    """
+    return {
+        "locale": interview.locale,
+        "selection_spec": session_to_spec(interview.selection),
+        "session_mode": interview.session_mode,
+        "status": interview.status,
+        "overall_feedback": (
+            json.dumps(interview.overall_feedback, separators=(",", ":"))
+            if interview.overall_feedback is not None
+            else None
+        ),
+        "started_at": interview.started_at,
+        "completed_at": interview.completed_at,
+    }

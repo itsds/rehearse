@@ -1,0 +1,227 @@
+category: "Data Structures"
+track: "python"
+level: "junior"
+
+description: "Fundamental Python data structures and their usage"
+
+questions:
+  - id: "ds-001"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["list", "tuple"]
+    question:
+      text:
+        en: "What is the difference between a list and a tuple in Python?"
+        ru: "В чём разница между списком (list) и кортежем (tuple) в Python?"
+      code: null
+    follow_ups:
+      en:
+        - "When would you choose a tuple over a list?"
+        - "Can a tuple contain mutable objects?"
+      ru:
+        - "Когда стоит выбрать кортеж вместо списка?"
+        - "Может ли кортеж содержать изменяемые объекты?"
+    expected_points:
+      - "Lists are mutable, tuples are immutable"
+      - "Lists use [], tuples use ()"
+
+  - id: "ds-002"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["dict", "hash-map"]
+    question:
+      text:
+        en: "How does a Python dictionary work internally?"
+        ru: "Как работает словарь (dict) в Python внутри?"
+      code: null
+    follow_ups:
+      en:
+        - "Why are dictionary keys required to be hashable?"
+        - "What is the time complexity of dictionary lookup?"
+      ru:
+        - "Почему ключи словаря должны быть хешируемыми?"
+        - "Какова временная сложность поиска в словаре?"
+    expected_points:
+      - "Uses hash table implementation"
+      - "Keys must be hashable and unique"
+      - "Average O(1) lookup time"
+
+  - id: "ds-003"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["set", "frozenset"]
+    question:
+      text:
+        en: "What is the difference between a set and a frozenset in Python? When would you use each?"
+        ru: "В чём разница между set и frozenset в Python? Когда исп��льзовать каждый из них?"
+      code: null
+    follow_ups:
+      en:
+        - "What operations does a set support (union, intersection, difference)?"
+        - "Why can a frozenset be used as a dict key but a set cannot?"
+      ru:
+        - "Какие операции поддерживает set (объединение, пересечение, разность)?"
+        - "Почему frozenset можно использовать как ключ словаря, а set — нет?"
+    expected_points:
+      - "set is mutable; frozenset is immutable"
+      - "Both store unique, hashable elements"
+      - "frozenset is hashable itself, so it can be a dict key or set element"
+      - "Both support mathematical set operations: |, &, -, ^"
+
+  - id: "ds-004"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["list-operations", "slicing"]
+    question:
+      text:
+        en: "How does list slicing work in Python? What are common list methods for manipulation?"
+        ru: "Как работают срезы (slicing) списков в Python? Какие есть распространённые методы для работы со списками?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the time complexity of list.append() vs list.insert()?"
+        - "How do extend() and += differ from append()?"
+        - "How does pop() vs pop(0) differ in performance?"
+      ru:
+        - "Какова временная сложность list.append() по сравнению с list.insert()?"
+        - "Чем extend() и += отличаются от append()?"
+        - "Чем pop() отличается от pop(0) по производительности?"
+    expected_points:
+      - "list[start:stop:step] — returns a new list"
+      - "append() is O(1), insert() and pop(0) are O(n)"
+      - "extend() adds all elements from an iterable"
+      - "pop() removes and returns last element (O(1)); pop(i) is O(n)"
+
+  - id: "ds-005"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["dict-methods", "defaultdict"]
+    question:
+      text:
+        en: "What are common dictionary methods? How does collections.defaultdict simplify dictionary usage?"
+        ru: "Какие есть распространённые методы словарей? Как collections.defaultdict упрощает работу со словарями?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between dict.get() and dict.setdefault()?"
+        - "What does dict.items(), dict.keys(), dict.values() return?"
+        - "How does Counter from collections relate to defaultdict?"
+      ru:
+        - "В чём разница между dict.get() и dict.setdefault()?"
+        - "Что возвращают dict.items(), dict.keys(), dict.values()?"
+        - "Как Counter из collections связан с defaultdict?"
+    expected_points:
+      - "dict.get(key, default) returns value or default without KeyError"
+      - "dict.setdefault(key, default) sets default if key missing, returns value"
+      - "defaultdict(factory) auto-creates missing keys using factory"
+      - "Counter is a specialized dict for counting hashable objects"
+
+  - id: "ds-006"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["collections", "deque", "Counter"]
+    question:
+      text:
+        en: "What useful data structures does the 'collections' module provide? Describe three of them."
+        ru: "Какие полезные структуры данных предоставляет модуль 'collections'? Опишите три из них."
+      code: null
+    follow_ups:
+      en:
+        - "When would you use deque over a list?"
+        - "What is namedtuple and when is it useful?"
+        - "What does ChainMap do?"
+      ru:
+        - "Когда использовать deque вместо списка?"
+        - "Что такое namedtuple и когда он полезен?"
+        - "Что делает ChainMap?"
+    expected_points:
+      - "deque: double-ended queue with O(1) append/pop on both ends"
+      - "Counter: dict subclass for counting hashable objects"
+      - "namedtuple: lightweight immutable data classes"
+      - "ChainMap: groups multiple dicts into a single view"
+
+  - id: "ds-007"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["array", "performance"]
+    question:
+      text:
+        en: "What is the difference between list, array.array, and numpy.array? When would you choose each?"
+        ru: "В чём разница между list, array.array и numpy.array? Когда выбрать каждый из них?"
+      code: null
+    follow_ups:
+      en:
+        - "What are the memory characteristics of lists vs arrays?"
+        - "Why is numpy faster for numerical operations?"
+      ru:
+        - "Каковы характеристики памяти списков по сравнению с массивами?"
+        - "Почему numpy быстрее для числовых операций?"
+    expected_points:
+      - "list: heterogeneous, flexible, stores Python objects (overhead)"
+      - "array.array: homogeneous, memory-efficient for primitive types"
+      - "numpy.array: homogeneous, vectorized operations, C-level performance"
+      - "Use lists for general, array for memory-efficient, numpy for math"
+
+  - id: "ds-008"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["stack", "queue", "LIFO", "FIFO"]
+    question:
+      text:
+        en: "How would you implement a stack (LIFO) and a queue (FIFO) in Python?"
+        ru: "Как реализовать стек (LIFO) и очередь (FIFO) в Python?"
+      code: null
+    follow_ups:
+      en:
+        - "Why is a list suitable for a stack but not ideal for a queue?"
+        - "How does collections.deque solve the queue problem?"
+        - "What is queue.Queue and how does it differ for threading?"
+      ru:
+        - "Почему список подходит для стека, но не идеален для очереди?"
+        - "Как collections.deque решает проблему очереди?"
+        - "Что такое queue.Queue и чем он отличается для многопоточности?"
+    expected_points:
+      - "Stack: use list with append() (push) and pop() (pop) — both O(1)"
+      - "Queue: use deque with append() (enqueue) and popleft() (dequeue) — both O(1)"
+      - "list.pop(0) is O(n) — don't use list for queues"
+      - "queue.Queue is thread-safe; deque is not"
+
+  - id: "ds-009"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["tuple", "list", "complexity"]
+    question:
+      text:
+        en: "What data types exist in Python and into which groups can they be divided? How does a tuple differ from a list? What is the time complexity of appending an element to a list (e.g., `append` method)?"
+        ru: "Какие типы данных существуют в Python и на какие группы их можно разделить? Чем отличается кортеж (tuple) от списка (list)? Какова временная сложность добавления элемента в список (например, метод `append`)?"
+      code: null
+    follow_ups:
+      en:
+        - "What are mutable vs immutable data types in Python?"
+        - "How does list.append() achieve O(1) amortized time complexity?"
+        - "What happens when a list needs to grow beyond its allocated capacity?"
+      ru:
+        - "Какие изменяемые и неизменяемые типы данных существуют в Python?"
+        - "Как list.append() достигает O(1) амортизированной временной сложности?"
+        - "Что происходит, когда список должен вырасти за пределы выделенной ёмкости?"
+    expected_points:
+      - "Built-in types: numeric (int, float, complex), sequences (list, tuple, range, str, bytes), mappings (dict), sets (set, frozenset), booleans, None"
+      - "Mutable: list, dict, set; Immutable: tuple, str, int, float, frozenset"
+      - "Tuple is immutable, list is mutable; tuple uses (), list uses []"
+      - "list.append() has O(1) amortized time complexity due to dynamic array resizing"
+
+  - id: "ds-010"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["dict", "hash-table", "hashing"]
+    question:
+      text:
+        en: "How are dictionaries (`dict`) implemented and what objects can serve as keys? What is a hash table and is it possible for different objects to have the same hash?"
+        ru: "Как устроены словари (dict) и какие объекты могут служить ключами? Что представляет собой хэш-таблица и возможно ли, чтобы разные объекты имели одинаковый хэш?"
+      code: null
+    follow_ups:
+      - "Dictionaries are implemented as hash tables (open addressing with probing)"
+      - "Keys must be hashable (have __hash__ method) and immutable (or effectively immutable)"
+      - "Hash collisions are possible; Python handles them with probing (linear or quadratic)"
+      - "Different objects can have the same hash (collision), but equal objects must have same hash"
+      - "Lists cannot be keys because they're mutable and not hashable"

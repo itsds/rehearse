@@ -1,0 +1,65 @@
+category: Kafka Client Basics
+track: python
+level: junior
+description: Python Kafka libraries and basic producer/consumer usage
+questions:
+- id: kpy-j-001
+  type: knowledge
+  difficulty: 1
+  tags:
+  - python
+  - kafka
+  - libraries
+  - kafka-python
+  - confluent-kafka
+  - aiokafka
+  question:
+    text:
+      en: What are the main Python libraries for Kafka? Compare kafka-python, confluent-kafka-python, and aiokafka (pros,
+        cons, performance, use cases).
+      ru: Какие основные Python-библиотеки для Kafka? Сравните kafka-python, confluent-kafka-python и aiokafka (плюсы, минусы,
+        производительность, сценарии).
+    code: null
+  follow_ups:
+    en:
+    - Which library is production-ready?
+    - How to choose for high-throughput vs ease of development?
+    ru:
+    - Какая библиотека подходит для продакшена?
+    - Как выбрать между высокой производительностью и простотой разработки?
+  expected_points:
+  - 'kafka-python: pure Python, simple, good for dev and tests, low performance'
+  - 'confluent-kafka-python: wrapper over librdkafka (C), very fast, production-ready, supports transactions and EOS'
+  - 'aiokafka: async (asyncio), FastAPI/aiogram compatible, usually based on kafka-python, librdkafka version also exists'
+  - 'When choosing: confluent-kafka for throughput, aiokafka for async applications'
+- id: kpy-j-002
+  type: knowledge
+  difficulty: 2
+  tags:
+  - python
+  - kafka
+  - producer
+  - serialization
+  question:
+    text:
+      en: What is the structure of a Kafka producer in confluent-kafka-python? Explain how JSON serialization,
+        delivery callbacks, and async sending work. What is the purpose of poll() and flush()?
+      ru: Как устроен Kafka продюсер в confluent-kafka-python? Объясните, как работают JSON-сериализация,
+        callback доставки и асинхронная отправка. Для чего нужны poll() и flush()?
+    code: null
+  follow_ups:
+    en:
+    - What is the purpose of flush() and poll()?
+    - How to handle batching and linger.ms?
+    - How to produce with Avro?
+    ru:
+    - Для чего нужны flush() и poll()?
+    - Как настроить батчинг и linger.ms?
+    - Как отправлять Avro?
+  expected_points:
+  - Producer is created with config (bootstrap.servers)
+  - produce() accepts topic, key, value (bytes), callback
+  - JSON must be serialized to bytes (json.dumps().encode())
+  - flush() blocks until all messages are sent
+  - poll() triggers callback processing and network maintenance
+  - Async delivery via a separate thread calling poll() in a loop

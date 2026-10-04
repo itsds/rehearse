@@ -1,0 +1,145 @@
+category: "Control Flow"
+track: "python"
+level: "junior"
+
+description: "Python control flow constructs: conditionals, loops, iterators, and context managers"
+
+questions:
+  - id: "cf-001"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["if-elif-else", "conditionals"]
+    question:
+      text:
+        en: "Explain how Python evaluates 'if', 'elif', and 'else' blocks. What happens if multiple conditions are True?"
+        ru: "Объясните, как Python вычисляет блоки 'if', 'elif' и 'else'. Что произойдёт, если несколько условий истинны?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the difference between 'elif' and a separate 'if'?"
+        - "Can you write a ternary conditional in Python?"
+      ru:
+        - "В чём разница между 'elif' и отдельным 'if'?"
+        - "Можно ли записать тернарный оператор в Python?"
+    expected_points:
+      - "Conditions are evaluated from top to bottom"
+      - "Only the first True condition's block executes"
+      - "'elif' is short for 'else if' — maintains mutual exclusivity with prior conditions"
+      - "Ternary: x if condition else y"
+
+  - id: "cf-002"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["for-loop", "while-loop"]
+    question:
+      text:
+        en: "What are the different ways to create loops in Python? Compare 'for' and 'while' loops."
+        ru: "Какие существуют способы создания циклов в Python? Сравните циклы 'for' и 'while'."
+      code: null
+    follow_ups:
+      en:
+        - "When would you choose a 'while' loop over 'for'?"
+        - "What is the 'else' clause on loops used for?"
+      ru:
+        - "В каких случаях выбрать 'while' вместо 'for'?"
+        - "Для чего используется блок 'else' у циклов?"
+    expected_points:
+      - "'for' loop iterates over iterable objects"
+      - "'while' loop continues while a condition is True"
+      - "Both support 'break' (exit loop) and 'continue' (skip to next iteration)"
+      - "Loop 'else' runs when loop completes normally without break"
+
+  - id: "cf-004"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["comprehensions", "list-dict-set"]
+    question:
+      text:
+        en: "What are comprehensions in Python? Explain list, dict, and set comprehensions."
+        ru: "Что такое включения (comprehensions) в Python? Объясните включения списков, словарей и множеств."
+      code: null
+    follow_ups:
+      en:
+        - "What is a generator expression and how does it differ from a list comprehension?"
+        - "Can you use nested comprehensions? Give an example."
+      ru:
+        - "Что такое генераторное выражение и чем оно отличается от включения списка?"
+        - "Можно ли использовать вложенные включения? Приведите пример."
+    expected_points:
+      - "List: [expr for x in iterable if condition]"
+      - "Dict: {key: value for x in iterable if condition}"
+      - "Set: {expr for x in iterable if condition}"
+      - "Generator: (expr for x in iterable) — lazy evaluation"
+
+  - id: "cf-005"
+    type: "knowledge"
+    difficulty: 2
+    tags: ["context-manager", "with"]
+    question:
+      text:
+        en: "How does the 'with' statement work in Python? What protocol does it use?"
+        ru: "Как работает оператор 'with' в Python? Какой протокол он использует?"
+      code: null
+    follow_ups:
+      en:
+        - "What are __enter__ and __exit__ methods?"
+        - "How would you create a custom context manager using contextlib.contextmanager?"
+        - "Can you nest multiple context managers in one 'with'?"
+      ru:
+        - "Что такое методы __enter__ и __exit__?"
+        - "Как создать собственный контекстный менеджер с помощью contextlib.contextmanager?"
+        - "Можно ли вложить несколько контекстных менеджеров в один 'with'?"
+    expected_points:
+      - "'with' manages resources via context manager protocol"
+      - "__enter__ is called on entry, __exit__ on exit — even on exceptions"
+      - "Multiple managers: with open(a) as f, open(b) as g:"
+      - "@contextmanager from contextlib for generator-based managers"
+
+  - id: "cf-006"
+    type: "knowledge"
+    difficulty: 1
+    tags: ["match-case", "structural-pattern-matching"]
+    question:
+      text:
+        en: "What is structural pattern matching (match-case) in Python 3.10? Give a basic usage example."
+        ru: "Что такое структурное сопоставление с образцом (match-case) в Python 3.10? Приведите пример использования."
+      code: null
+    follow_ups:
+      en:
+        - "How does it differ from a chain of if-elif?"
+        - "What are guard conditions in match-case?"
+        - "Can you match sequences, mappings, and class instances?"
+      ru:
+        - "Чем это отличается от цепочки if-elif?"
+        - "Что такое условия-стражи (guard) в match-case?"
+        - "Можно ли сопоставлять последовательности, отображения и экземпляры классов?"
+    expected_points:
+      - "Introduced in Python 3.10 — more powerful than switch/case"
+      - "Supports matching literals, sequences, mappings, and class instances"
+      - "Guards: case pattern if condition:"
+      - "Wildcard '_' matches anything"
+
+  - id: "cf-008"
+    type: "knowledge"
+    difficulty: 3
+    tags: ["iterator", "iterable", "generator"]
+    question:
+      text:
+        en: "What are the differences between an iterator (iterator), an iterable (iterable) and a generator (generator)? What methods does a generator have (besides `__next__` and `send`)?"
+        ru: "Чем отличаются итератор (iterator), итерируемый объект (iterable) и генератор (generator)? Какие методы есть у генератора (кроме `__next__` и `send`)?"
+      code: null
+    follow_ups:
+      en:
+        - "What is the iterator protocol in Python?"
+        - "How does a generator function differ from a regular function?"
+        - "What are generator methods: close(), throw(), and __iter__()?"
+      ru:
+        - "Что такое протокол итератора в Python?"
+        - "Чем функция-генератор отличается от обычной функции?"
+        - "Какие методы генератора: close(), throw(), и __iter__()?"
+    expected_points:
+      - "Iterable: object with __iter__() returning an iterator"
+      - "Iterator: object with __next__() and __iter__() (returns self)"
+      - "Generator: special iterator created by generator function (yield) or expression"
+      - "Generator methods: close() (raises GeneratorExit), throw() (raises exception at yield), __iter__() (returns self)"
+      - "Generators are lazy, memory-efficient for large sequences"

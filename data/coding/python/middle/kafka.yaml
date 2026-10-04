@@ -1,0 +1,163 @@
+category: "Kafka Client Development"
+track: "python"
+level: "middle"
+
+description: "Implement Kafka consumers with manual offset commit and async consumption with aiokafka"
+
+tasks:
+  - id: "kafka-m-001"
+    difficulty: 3
+    tags: ["kafka", "consumer", "manual-commit", "offset", "confluent-kafka", "error-handling"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to implement a Kafka consumer with manual offset commit.
+          The consumer should read messages, process them, and commit offsets
+          only after successful processing.
+
+          Your task:
+          Complete the `consume` method so that it:
+          - Subscribes to the given topic
+          - Polls messages in a loop (timeout=1.0)
+          - Skips empty messages (poll returns None)
+          - Logs and skips messages with errors
+          - Processes the message (calls process_msg)
+          - Commits the offset synchronously after successful processing
+          - Handles KeyboardInterrupt gracefully and closes the consumer
+        ru: |
+          Контекст:
+          Вам нужно реализовать Kafka консьюмера с ручным коммитом офсетов.
+
+          Задача:
+          Реализуйте метод `consume` так, чтобы он:
+          - Подписывался на указанный топик
+          - Получал сообщения в цикле (timeout=1.0)
+          - Пропускал пустые сообщения (poll вернул None)
+          - Логировал и пропускал сообщения с ошибками
+          - Обрабатывал сообщение (вызов process_msg)
+          - Коммитил офсет синхронно после успешной обработки
+          - Обрабатывал KeyboardInterrupt и закрывал consumer
+      starter_code: |
+        import logging
+        from confluent_kafka import Consumer
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+
+        def process_msg(msg):
+            """Simulate message processing (may raise)."""
+            logger.info(f"Processing: {msg.value()}")
+
+
+        class ManualCommitConsumer:
+            def __init__(self, bootstrap_servers, group_id):
+                self.conf = {
+                    "bootstrap.servers": bootstrap_servers,
+                    "group.id": group_id,
+                    "auto.offset.reset": "earliest",
+                    "enable.auto.commit": False,
+                }
+                self.consumer = Consumer(self.conf)
+
+            def consume(self, topic):
+                """Subscribe and consume messages with manual commit."""
+                # TODO: subscribe, poll loop, process, commit sync
+                pass
+
+            def close(self):
+                self.consumer.close()
+
+
+        consumer = ManualCommitConsumer("localhost:9092", "mygroup")
+        try:
+            consumer.consume("mytopic")
+        except KeyboardInterrupt:
+            logger.info("Shutting down...")
+        finally:
+            consumer.close()
+    expected_points:
+      - "Subscribes to the topic"
+      - "Polls messages with timeout=1.0"
+      - "Skips None results and messages with errors"
+      - "Calls process_msg and commits synchronously after processing"
+      - "Calls consumer.close() on shutdown"
+
+  - id: "kafka-m-002"
+    difficulty: 3
+    tags: ["kafka", "aiokafka", "asyncio", "fastapi", "consumer", "startup-shutdown"]
+    coding:
+      language: python
+      evaluation_mode: ai
+      assignment:
+        en: |
+          Context:
+          You need to integrate an async Kafka consumer (aiokafka) into a FastAPI application.
+          The consumer should start on application startup and stop on shutdown.
+
+          Your task:
+          Complete the `consume_loop` coroutine so that it:
+          - Iterates over messages from the consumer
+          - Processes each message via `process_message`
+          - Commits the offset manually after processing
+
+          The FastAPI app, consumer setup, and startup/shutdown events are already in place.
+          Use `async for msg in consumer:` for iteration.
+        ru: |
+          Контекст:
+          Нужно интегрировать асинхронный Kafka консьюмер (aiokafka) в FastAPI приложение.
+
+          Задача:
+          Реализуйте корутину `consume_loop` так, чтобы она:
+          - Итерировалась по сообщениям от consumer
+          - Обрабатывала каждое сообщение через `process_message`
+          - Коммитила офсет после обработки
+
+          FastAPI приложение, consumer и события startup/shutdown уже настроены.
+          Используйте `async for msg in consumer:` для итерации.
+      starter_code: |
+        from fastapi import FastAPI
+        from aiokafka import AIOKafkaConsumer
+        import asyncio
+        import logging
+
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
+
+        app = FastAPI()
+        consumer = AIOKafkaConsumer(
+            "mytopic",
+            bootstrap_servers="localhost:9092",
+            group_id="fastapi-group",
+        )
+
+
+        async def process_message(msg):
+            """Simulate message processing."""
+            logger.info(f"Processed: {msg.value}")
+            await asyncio.sleep(0.1)
+
+
+        async def consume_loop():
+            """Consume messages in a loop."""
+            # TODO: iterate over consumer, process each message, commit
+            pass
+
+
+        @app.on_event("startup")
+        async def startup():
+            await consumer.start()
+            asyncio.create_task(consume_loop())
+
+
+        @app.on_event("shutdown")
+        async def shutdown():
+            await consumer.stop()
+    expected_points:
+      - "Uses async for msg in consumer: to iterate"
+      - "Calls await process_message(msg) for each message"
+      - "Calls await consumer.commit() after processing"
+      - "consume_loop is started as a background task on startup"

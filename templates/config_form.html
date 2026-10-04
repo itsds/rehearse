@@ -1,0 +1,182 @@
+{% if error %}
+<div class="alert alert-error">{{ error }}</div>
+{% endif %}
+
+{% if message %}
+<div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">AI Provider Configuration</h1>
+        <p class="card-subtitle">Configure your AI provider for interview feedback and evaluation</p>
+    </div>
+
+    <form method="post" action="/config" class="form" id="config-form">
+        <div class="form-group">
+            <label for="llm_preset_id" class="form-label form-label-required">Interview model</label>
+            {% if llm_presets %}
+            <select name="llm_preset_id" id="llm_preset_id" class="form-control" required>
+                {% for preset in llm_presets %}
+                <option value="{{ preset.id }}"
+                        {% if selected_llm_preset_id == preset.id %}selected{% endif %}
+                        {% if preset.description %}data-description="{{ preset.description }}"{% endif %}
+                        data-api-key-required="{{ 'true' if preset.api_key_required else 'false' }}"
+                        data-accepts-audio-input="{{ 'true' if preset.accepts_audio_input else 'false' }}">
+                    {{ preset.display_name }}{% if preset.accepts_audio_input %} (audio){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            <p class="form-hint" id="llm-preset-description"></p>
+            {% else %}
+            <div class="alert alert-info">
+                No models in the catalog yet. Add one below, then select it and save.
+            </div>
+            <input type="hidden" name="llm_preset_id" value="">
+            {% endif %}
+        </div>
+
+        <div class="form-group" id="api-key-group">
+            <label for="api_key" class="form-label">API Key <span class="text-muted">(optional for local providers)</span></label>
+            <input type="password" name="api_key" id="api_key"
+                   class="form-control"
+                   value=""
+                   autocomplete="off"
+                   placeholder="{% if config and config.api_key %}Leave blank to keep existing key{% else %}sk-...{% endif %}">
+            <p class="form-hint">Stored in <code>data/llm_models.json</code> with the selected model.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="locale" class="form-label form-label-required">Interview language</label>
+            <select name="locale" id="locale" class="form-control" required>
+                {% for code, label in locales.items() %}
+                <option value="{{ code }}"{% if config and config.locale == code %} selected{% elif not config and code == "en" %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <p class="form-hint">Language for AI feedback and voice dictation transcription.</p>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <input type="checkbox" name="question_voice_enabled" id="question_voice_enabled" value="true"
+                       {% if config and config.question_voice_enabled %}checked{% endif %}>
+                Read questions aloud
+            </label>
+            <p class="form-hint">When enabled, the interview page reads each question aloud using an offline Piper voice (download on the Configuration page below).</p>
+        </div>
+
+        <div class="form-group">
+            <span class="form-label form-label-required">Speech model size</span>
+            <p class="form-hint">Offline Whisper model for voice input. Larger models are more accurate but slower and use more disk and RAM.</p>
+            <div class="speech-model-size-options">
+                {% for size, spec in speech_model_specs.items() %}
+                <label class="speech-model-size-option">
+                    <input type="radio" name="speech_model_size" value="{{ size }}"
+                           {% if config and config.speech_model_size == size %}checked{% elif not config and size == "small" %}checked{% endif %}
+                           required>
+                    <span class="speech-model-size-option-title">{{ spec.display_name }}</span>
+                    <span class="speech-model-size-option-meta">~{{ spec.approx_download_mb }} MB download · {{ spec.ram_hint }} RAM · {{ spec.speed_hint }} · {{ spec.quality_hint }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="timeout" class="form-label">Timeout (seconds)</label>
+            <input type="number" name="timeout" id="timeout"
+                   class="form-control"
+                   value="{{ config.timeout if config else 60 }}"
+                   min="1" max="300" step="1">
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="button-group">
+            <button type="submit" class="btn btn-primary"{% if not llm_presets %} disabled{% endif %}>Save Configuration</button>
+            <button type="submit" formaction="/config/test" formmethod="post" class="btn btn-secondary"{% if not llm_presets %} disabled{% endif %}>Test Connection</button>
+        </div>
+    </form>
+
+    {% if config %}
+    <div class="divider"></div>
+    <form method="post" action="/config" onsubmit="this.method='delete'; return confirm('Remove configuration?');">
+        <button type="submit" class="btn btn-danger">Remove Configuration</button>
+    </form>
+    {% endif %}
+</div>
+
+<div class="card" id="add-llm-model-panel">
+    <div class="card-header">
+        <h2 class="card-title">Add model to catalog</h2>
+        <p class="card-subtitle">Save an OpenAI-compatible provider for reuse in the interview model list</p>
+    </div>
+    <form method="post" action="/config/llm-models" class="form">
+        <div class="form-group">
+            <label for="catalog_display_name" class="form-label form-label-required">Display name</label>
+            <input type="text" name="display_name" id="catalog_display_name" class="form-control" required
+                   placeholder="Work GPT-4">
+            <p class="form-hint">A stable id is generated from this name and stored in <code>data/llm_models.json</code>.</p>
+        </div>
+        <div class="form-group">
+            <label for="catalog_base_url" class="form-label form-label-required">Base URL</label>
+            <input type="url" name="base_url" id="catalog_base_url" class="form-control" required
+                   placeholder="https://api.openai.com/v1">
+        </div>
+        <div class="form-group">
+            <label for="catalog_model" class="form-label form-label-required">Model name</label>
+            <input type="text" name="model" id="catalog_model" class="form-control" required
+                   placeholder="gpt-4">
+        </div>
+        <div class="form-group">
+            <label for="catalog_api_key" class="form-label">API key</label>
+            <input type="password" name="api_key" id="catalog_api_key" class="form-control"
+                   autocomplete="off" placeholder="sk-...">
+            <p class="form-hint">Optional. Stored in <code>data/llm_models.json</code> with the model.</p>
+        </div>
+        <div class="form-group">
+            <label class="form-label">
+                <input type="checkbox" name="api_key_required" id="catalog_api_key_required" value="true">
+                API key required
+            </label>
+        </div>
+        <div class="form-group">
+            <label class="form-label">
+                <input type="checkbox" name="accepts_audio_input" id="catalog_accepts_audio_input" value="true">
+                Accepts audio input
+            </label>
+            <p class="form-hint">When enabled, the model is tested with a short audio probe on add and when saving configuration. Whisper must be installed for the selected speech model size.</p>
+        </div>
+        <button type="submit" class="btn btn-secondary">Add model</button>
+    </form>
+</div>
+
+{% if llm_presets %}
+<script>
+(function () {
+    const presetSelect = document.getElementById("llm_preset_id");
+    const description = document.getElementById("llm-preset-description");
+    const apiKeyGroup = document.getElementById("api-key-group");
+    const audioHint =
+        "This model accepts audio answers. Whisper must be installed for the selected speech model size.";
+    if (!presetSelect) {
+        return;
+    }
+    function applyPresetMode() {
+        const option = presetSelect.options[presetSelect.selectedIndex];
+        const apiKeyRequired = option.dataset.apiKeyRequired === "true";
+        const acceptsAudio = option.dataset.acceptsAudioInput === "true";
+        if (description) {
+            const base = option.dataset.description || "";
+            description.textContent = acceptsAudio
+                ? (base ? base + " — " : "") + audioHint
+                : base;
+        }
+        if (apiKeyGroup) {
+            apiKeyGroup.hidden = !apiKeyRequired;
+        }
+    }
+    presetSelect.addEventListener("change", applyPresetMode);
+    applyPresetMode();
+})();
+</script>
+{% endif %}
