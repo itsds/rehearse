@@ -73,8 +73,20 @@ class TheoryReviewPage:
                 **scores,
                 "section_feedback": section_feedback,
                 "answers": answers,
+                "completed_at": snapshot.interview.completed_at,
             }
         )
+
+    def interview_exists(self, interview_id: str) -> bool:
+        """Return whether a session with this id exists, completed or not.
+
+        Args:
+            interview_id: Parent session UUID.
+
+        Returns:
+            True when the interview row exists.
+        """
+        return self._uow.interviews.get_aggregate(interview_id) is not None
 
     def build_context_for(self, interview_id: str) -> TheoryReviewContext | None:
         """Build theory review context for a completed session.

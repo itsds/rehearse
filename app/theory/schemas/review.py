@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict
@@ -24,6 +25,7 @@ class TheoryReviewContext(BaseModel):
         section_feedback: Resolved section narrative payload.
         answers: All answered theory task rounds for chat history.
         results_url: Relative URL for the session results hub.
+        completed_at: When the session ended, or None when unknown.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -37,3 +39,4 @@ class TheoryReviewContext(BaseModel):
     section_feedback: dict[str, Any]
     answers: list[TheoryTaskRead]
     results_url: str
+    completed_at: datetime | None = None

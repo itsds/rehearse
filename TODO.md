@@ -17,7 +17,6 @@ Tick items off as they land. Keep each change small and focused so upstream Gril
 - [ ] Tighten the evaluator prompt (`app/theory/domain/evaluator_prompts.py`): correctness and reasoning over checklist coverage; a wrong core claim caps the score at 2; naming a concept without explaining it earns no credit; checklist is guidance, a different valid approach can score 5; judge against a Staff-level bar when no checklist exists. Write `expected_points` as reasoning, not keywords
 - [ ] "Answer again" loop: re-attempt the same question after reading feedback
 - [ ] Progress trend chart across rehearsals on the dashboard
-- [ ] "Export transcript" button on the theory review page — downloads questions, follow-ups and my answers as Markdown, with Rehearse's scores and feedback left out, ready to paste into another AI for a blind second-opinion grade
 - [ ] Second-opinion skill for the Claude app: my own Staff-level grading prompt saved as a Claude skill. Workflow: Export transcript in Rehearse → paste/attach in the Claude app → skill grades it blind. Kept separate from InterviewMentor's scorecard (revisit only if that proves useful). Design it together with the export option.
 
 ## Coding mode
@@ -57,3 +56,4 @@ Tick items off as they land. Keep each change small and focused so upstream Gril
 - [x] Fix Docker startup so database migrations run
 - [x] Enable NVIDIA GPU for Whisper (CUDA libraries in the image, GPU reservation in compose)
 - [x] Rebrand UI to "Rehearse — By DS"
+- [x] "Export transcript" button on the theory review page — downloads questions, follow-ups and my answers as Markdown, with Rehearse's scores and feedback left out, ready to paste into another AI for a blind second-opinion grade

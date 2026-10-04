@@ -2,8 +2,13 @@
 # SPDX-License-Identifier: Apache-2.0
 """Completed session results and section review pages."""
 
-from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import (
+    HTMLResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+)
 
 from app.interview.api.deps import (
     CodingReviewServiceDep,
@@ -11,6 +16,10 @@ from app.interview.api.deps import (
     TheoryReviewServiceDep,
 )
 from app.templating import templates
+from app.theory.support.transcript_export import (
+    render_theory_transcript,
+    transcript_filename,
+)
 
 router = APIRouter(prefix="/interview", tags=["interview-results"])
 
@@ -66,6 +75,38 @@ async def theory_review_page(
         request,
         "theory_review.html",
         context.model_dump(),
+    )
+
+
+@router.get("/{interview_id}/theory/export.md", response_class=PlainTextResponse)
+async def theory_transcript_export(
+    interview_id: str,
+    service: TheoryReviewServiceDep,
+) -> Response:
+    """Download the theory Q&A as Markdown, without scores or feedback.
+
+    Args:
+        interview_id: Session UUID.
+        service: Theory review service for the request scope.
+
+    Returns:
+        Markdown attachment, or redirect when the session is not completed.
+
+    Raises:
+        HTTPException: 404 when the session does not exist.
+    """
+    context = service.build_context_for(interview_id)
+    if context is None:
+        if not service.interview_exists(interview_id):
+            raise HTTPException(status_code=404, detail="Interview not found")
+        return RedirectResponse(
+            url=f"/interview/{interview_id}/results", status_code=303
+        )
+    filename = transcript_filename(interview_id)
+    return Response(
+        content=render_theory_transcript(context),
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
