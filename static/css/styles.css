@@ -2478,3 +2478,81 @@ textarea.form-control {
 @media (prefers-reduced-motion: reduce) {
     .self-view__rec-dot { animation: none; }
 }
+
+/* Self-view sizes: minimized / normal / maximized (floating) */
+.self-view__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.self-view__size-btn {
+    flex: 1 1 auto;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.self-view__size-btn:hover {
+    background-color: var(--surface-hover);
+}
+
+.self-view__size-btn[aria-pressed="true"] {
+    color: var(--text-primary);
+    background-color: var(--primary-soft);
+    border-color: var(--primary);
+}
+
+.self-view__minimized-note {
+    display: none;
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+.self-view--min.self-view--on:not(.self-view--calibrating) .self-view__minimized-note {
+    display: block;
+}
+
+.self-view--min:not(.self-view--calibrating) .self-view__frame,
+.self-view--min:not(.self-view--calibrating) [data-self-view-mirror-row] {
+    display: none;
+}
+
+.self-view__restore {
+    display: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    background: rgb(0 0 0 / 0.55);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* Maximized: a larger floating preview in the top-right corner, away from the
+   answer box. On narrow screens it stays docked at normal size. */
+@media (min-width: 901px) {
+    .self-view--max .self-view__frame {
+        position: fixed;
+        top: 5rem;
+        right: 1.5rem;
+        width: min(40rem, calc(100vw - 24rem));
+        max-height: none;
+        z-index: 60;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .self-view--max .self-view__restore {
+        display: block;
+    }
+}

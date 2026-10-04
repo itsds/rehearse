@@ -308,7 +308,7 @@ Never put `type: coding` rows in `data/questions/`.
 | Dashboard | `GET /` → `interview/queries/dashboard.py`, `templates/dashboard.html` |
 | Progress trend | `GET /` card + `GET /progress` → `interview/queries/progress.py`, `domain/rules/progress_trend.py`, `templates/_trend_chart.html` |
 | Export transcript | `GET /interview/{id}/theory/export.md` → `theory/support/transcript_export.py` |
-| Camera self-view | `templates/_self_view.html` (theory sidebar, coding brief) + `static/js/self_view.js` — browser-only, always off on page load |
+| Camera self-view | `templates/_self_view.html` (theory sidebar, coding brief) + `static/js/self_view.js` — browser-only; on/off, recording and size remembered per interview in `localStorage` (`rehearse-session-media`) |
 | Record answers | `static/js/recording.js` (hooks `roundStart`/`roundEnd`/`flush` called from `interview.html`) → `POST /interview/{id}/recordings/clips` → `recording/use_cases/save_recording.py` → `data/recordings/<id>/` + `manifest.json` |
 | Replay / delete recordings | Theory review page (`interview/api/results.py` + `recording/queries/review_clips.py`); `GET /interview/{id}/recordings/{file}`, `DELETE /interview/{id}/recordings` |
 
@@ -382,8 +382,8 @@ Ollama fallback model → branding leftovers (favicon, DB rename).
 
 **Next planned session:** camera track, in the owner's order — the separate local video-review app
 (own repo, reads `data/recordings/` via `manifest.json`) → delivery metrics (see §14). Self-view and
-recording/replay are done. The second-opinion Claude skill (fed by Export transcript) is tracked in
-TODO.md.
+recording/replay are done. The owner's second-opinion Claude skill (`rehearse-second-opinion`,
+fed by Export transcript) exists in the Claude app.
 
 When implementing any of these, check TODO.md for the exact scope, keep the change self-contained
 in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and tick the item.
@@ -400,6 +400,7 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
      design rounds; installed as a Claude Code plugin in WSL and selectively uploaded to the Claude app.
      Not integrated into Rehearse.
 - Target workflow: **Export transcript** in Rehearse → run the second-opinion skill in the Claude app.
+  Both now exist: the export (theory review page) and the `rehearse-second-opinion` skill (created in Claude chat).
   Export = questions, follow-ups and answers as Markdown, **scores and feedback excluded** (avoid anchoring).
 - InterviewMentor's Novice/Intermediate/Expert scorecard is **not** used for the second opinion;
   revisit only if it proves valuable in practice.
@@ -411,10 +412,13 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
 
 **2026-10-04 — camera and video**
 - Phase 1 **self-view** shipped: browser-only preview (`getUserMedia` video only), nothing stored.
-  Owner's rule: the camera is **always off when a page loads** — never auto-start it, never remember
-  on/off (only the mirror choice is remembered).
-- Phase 2 **recording** shipped (theory page only): opt-in per visit ("Record this rehearsal",
-  unticked on load), one WebM clip per question round (question shown → answer submitted), a 10 s
+  Owner's rule: camera on/off, recording on/off and preview size are remembered **per interview
+  session** (keyed by interview id): a **new rehearsal always starts with the camera off**; a refresh
+  or return to the same rehearsal restores the choice. Mirror is a global preference. Sizes:
+  minimize (camera keeps running), normal, maximize (floating), pop out (picture-in-picture).
+  Recorded video is independent of preview size and mirror: always 1280×720, un-mirrored.
+- Phase 2 **recording** shipped (theory page only): opt-in ("Record this rehearsal", off for a new
+  rehearsal, resumed after a refresh; calibration once per rehearsal), one WebM clip per question round (question shown → answer submitted), a 10 s
   calibration clip (5 s camera, 5 s screen centre), files under `data/recordings/<interview_id>/`
   named `qNN-rR.webm`, no database tables. `manifest.json` **version 1** is a public contract for
   external tools: add fields only, never rename/remove without a version bump; it never contains

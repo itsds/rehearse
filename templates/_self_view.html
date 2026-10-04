@@ -1,16 +1,25 @@
 {# Camera self-view during an interview, driven by static/js/self_view.js.
-   The camera is always off when the page loads. On the theory page
+   Camera on/off, recording and size are remembered per interview session
+   (a new rehearsal starts with the camera off). On the theory page
    (self_view_recording set) an opt-in "Record this rehearsal" option saves one
    clip per answer round to data/recordings/ via static/js/recording.js. #}
-<section class="self-view" data-self-view aria-label="Camera self-view">
+<section class="self-view self-view--normal" data-self-view data-interview-id="{{ interview.id }}" aria-label="Camera self-view">
     <div class="self-view__header">
         <span class="self-view__title">Self-view</span>
         <button type="button" class="btn btn-outline btn-sm" data-self-view-toggle aria-pressed="false">Camera on</button>
     </div>
+    <div class="self-view__sizes" data-self-view-sizes role="group" aria-label="Preview size" hidden>
+        <button type="button" class="self-view__size-btn" data-self-view-size="min" aria-pressed="false" title="Hide the preview (camera and recording keep running)">Minimize</button>
+        <button type="button" class="self-view__size-btn" data-self-view-size="normal" aria-pressed="true" title="Normal size">Normal</button>
+        <button type="button" class="self-view__size-btn" data-self-view-size="max" aria-pressed="false" title="Larger floating preview">Maximize</button>
+        <button type="button" class="self-view__size-btn" data-self-view-popout hidden title="Pop out into a window you can move and resize (always un-mirrored)">Pop out</button>
+    </div>
+    <p class="self-view__minimized-note">Preview hidden, camera still on.</p>
     <div class="self-view__frame" data-self-view-frame hidden>
         <video class="self-view__video self-view__video--mirrored" data-self-view-video
                autoplay muted playsinline aria-label="Your camera preview"></video>
         <div class="self-view__overlay" data-calibration-overlay hidden aria-live="assertive"></div>
+        <button type="button" class="self-view__restore" data-self-view-size="normal" title="Back to normal size" aria-label="Back to normal size">&times;</button>
     </div>
     <label class="self-view__option" data-self-view-mirror-row hidden>
         <input type="checkbox" data-self-view-mirror checked>

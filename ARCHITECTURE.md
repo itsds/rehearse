@@ -713,10 +713,13 @@ Dashboard history links to `/interview/{id}/results` for completed sessions.
 ### Camera self-view
 
 `templates/_self_view.html` is included on active interview pages (theory sidebar, coding brief
-column) and driven by `static/js/self_view.js`. The camera is **always off on page load** (only the
-mirror choice is kept in `localStorage`); the preview requests video only via `getUserMedia` and the
-camera is released on `pagehide`. `window.RehearseSelfView` lets recording re-open the same stream
-with the microphone.
+column) and driven by `static/js/self_view.js`. Camera on/off, recording on/off, "calibrated" and the
+preview size (`min` / `normal` / `max`) are stored per interview id in `localStorage`
+(`rehearse-session-media`, pruned after 30 days / 50 sessions), so a new session starts off and a
+refresh restores the same session; mirror is a global preference. The preview requests video only via
+`getUserMedia`; **Pop out** uses the browser Picture-in-Picture API. The camera is released on
+`pagehide`. `window.RehearseSelfView` (incl. `session` get/update) lets recording re-open the same
+stream with the microphone.
 
 ### Interview recording (`app/recording/`)
 

@@ -1,8 +1,10 @@
 /* Opt-in interview recording (theory page). When "Record this rehearsal" is
    ticked: camera + microphone are opened through window.RehearseSelfView, a
-   10-second gaze calibration is recorded, then one clip per question round is
-   recorded from the moment the round is shown until the answer is submitted.
-   Clips are uploaded to this Rehearse server only (data/recordings/).
+   10-second gaze calibration is recorded (once per interview session), then
+   one clip per question round is recorded from the moment the round is shown
+   until the answer is submitted. Clips are uploaded to this Rehearse server
+   only (data/recordings/). The on/off choice is remembered per interview
+   session, so a refresh resumes recording; a new rehearsal starts off.
 
    interview.html drives it through window.RehearseRecording:
      roundStart({questionId, round}) - a question or follow-up is on screen
@@ -100,12 +102,19 @@
         return promise;
     }
 
+    function session() {
+        var selfView = window.RehearseSelfView;
+        return selfView ? selfView.session : { get: function () { return {}; }, update: function () {} };
+    }
+
     function upload(url, form, failureText) {
         return track(fetch(url, { method: "POST", body: form }).then(function (response) {
             if (!response.ok) throw new Error("HTTP " + response.status);
             uploadedAny = true;
+            return true;
         }).catch(function () {
             showStatus(failureText);
+            return false;
         }));
     }
 
@@ -168,6 +177,9 @@
     async function calibrate() {
         calibrating = true;
         setIndicator("Calibrating");
+        // Show the preview during calibration even if it is minimized.
+        var panel = window.RehearseSelfView && window.RehearseSelfView.root;
+        if (panel) panel.classList.add("self-view--calibrating");
         var handle = startRecording();
         var segments = [];
         var offset = 0;
@@ -182,6 +194,7 @@
             offset += step.seconds;
         }
         overlay(null);
+        if (panel) panel.classList.remove("self-view--calibrating");
         var blob = await stopRecording(handle);
         calibrating = false;
         if (!enabled || blob.size === 0) return;
@@ -190,7 +203,9 @@
         form.append("segments", JSON.stringify(segments));
         form.append("recorded_at", handle.startedAt);
         form.append("file", blob, fileName(blob));
-        upload(base() + "/calibration", form, "Could not save the calibration clip.");
+        upload(base() + "/calibration", form, "Could not save the calibration clip.").then(function (ok) {
+            if (ok) session().update({ calibrated: true });
+        });
     }
 
     async function enable() {
@@ -212,6 +227,8 @@
         }
         enabled = true;
         toggle.disabled = false;
+        session().update({ recording: true });
+        calibrated = calibrated || session().get().calibrated === true;
         if (!calibrated) await calibrate();
         if (!enabled) return;
         setIndicator("Recording on — waiting for the next question");
@@ -222,8 +239,11 @@
     function disable(message) {
         enabled = false;
         toggle.checked = false;
+        session().update({ recording: false });
         stopClip();
         overlay(null);
+        var panel = window.RehearseSelfView && window.RehearseSelfView.root;
+        if (panel) panel.classList.remove("self-view--calibrating");
         setIndicator("");
         if (message) showStatus(message);
     }
@@ -259,7 +279,7 @@
         statusEl = root.querySelector("[data-recording-status]");
         if (!toggle) return;
 
-        toggle.checked = false;  // always off when the page loads
+        toggle.checked = false;
         toggle.addEventListener("change", function () {
             if (toggle.checked) {
                 enable();
@@ -270,5 +290,11 @@
         document.addEventListener("rehearse:camera-off", function () {
             if (enabled) disable("Recording stopped because the camera was turned off.");
         });
+        // Same interview session (e.g. after a refresh): resume recording,
+        // without repeating the calibration.
+        if (session().get().recording) {
+            toggle.checked = true;
+            enable();
+        }
     });
 })();

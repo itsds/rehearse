@@ -46,9 +46,26 @@ def test_coding_interview_page_has_self_view(client, isolated_db) -> None:
     assert "nothing is recorded" in response.text
 
 
-def test_self_view_script_never_auto_starts_camera(client) -> None:
-    """The camera is opened only from a click; the on/off state is not stored."""
+def test_self_view_state_is_scoped_to_the_interview(client, isolated_db) -> None:
+    """The panel carries the interview id so on/off is remembered per session."""
+    interview_id = seed_two_question_interview("self-view-session")
+    response = client.get(f"/interview/{interview_id}")
+    assert f'data-self-view data-interview-id="{interview_id}"' in response.text
+
+
+def test_self_view_has_size_controls(client, isolated_db) -> None:
+    """Minimize / normal / maximize / pop-out controls are rendered."""
+    interview_id = seed_two_question_interview("self-view-sizes")
+    response = client.get(f"/interview/{interview_id}")
+    for size in ("min", "normal", "max"):
+        assert f'data-self-view-size="{size}"' in response.text
+    assert "data-self-view-popout" in response.text
+    assert "self-view__restore" in response.text
+
+
+def test_self_view_script_keeps_state_per_session(client) -> None:
+    """The script stores camera/recording/size per interview, not globally."""
     response = client.get("/static/js/self_view.js")
     assert response.status_code == 200
-    assert "getUserMedia" in response.text
-    assert "enabled" not in response.text
+    assert "rehearse-session-media" in response.text
+    assert "requestPictureInPicture" in response.text
