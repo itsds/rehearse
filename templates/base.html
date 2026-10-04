@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}GrillKit{% endblock %}</title>
+    <title>{% block title %}Rehearse{% endblock %}</title>
     <script>
         /* Apply theme before first paint to avoid a flash of the wrong theme. */
         (function () {
@@ -18,7 +18,10 @@
 <body class="{% block body_class %}{% endblock %}">
     <div class="app-container{% block app_class %}{% endblock %}">
         <nav class="navbar">
-            <a href="/" class="navbar-brand">GrillKit</a>
+            <a href="/" class="navbar-brand navbar-brand--stacked">
+                <span class="navbar-brand__name">Rehearse</span>
+                <span class="navbar-brand__byline">By DS</span>
+            </a>
             <ul class="navbar-nav">
                 <li><a href="/" class="nav-link">Dashboard</a></li>
                 <li><a href="/setup" class="nav-link">New Interview</a></li>
