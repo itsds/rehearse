@@ -19,6 +19,7 @@ from app.interview.api import router as interview_router
 from app.platform.api import router as platform_router
 from app.platform.domain.speech_runtime import SpeechRuntimeCoordinator
 from app.question_voice.api import router as question_voice_router
+from app.recording.api.routes import router as recording_router
 from app.shared.infrastructure.gateways.piper import PiperRuntime
 from app.shared.infrastructure.gateways.whisper import WhisperRuntime
 from app.shared.paths import STATIC_DIR
@@ -60,6 +61,7 @@ def create_app() -> FastAPI:
     app.include_router(coding_router)
     app.include_router(speech_router)
     app.include_router(question_voice_router)
+    app.include_router(recording_router)
 
     return app
 

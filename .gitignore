@@ -57,6 +57,7 @@ data/whisper-models/*
 data/piper-voices/*
 !data/piper-voices/.gitkeep
 data/tts-cache/
+data/recordings/
 data/.cache/
 nohup.out
 

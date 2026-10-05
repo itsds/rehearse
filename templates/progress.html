@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "_trend_chart.html" import trend_chart, trend_summary %}
+
+{% block title %}Progress - Rehearse{% endblock %}
+{% block body_class %}page-progress{% endblock %}
+
+{% block content %}
+<div class="card progress-trend-card">
+    <div class="card-header progress-trend-card__header">
+        <div>
+            <h1 class="card-title">Progress</h1>
+            <p class="card-subtitle">
+                Average first-answer score per rehearsal (0–5) over your last 50 completed rehearsals.
+                Follow-ups are not averaged in; a timed-out first answer counts as 0.
+            </p>
+        </div>
+        {% if progress.overall %}
+        <div class="progress-trend-card__aside">
+            {{ trend_summary(progress.overall) }}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if progress.overall is none %}
+    <div class="empty-state">
+        <h3>No scored rehearsals yet</h3>
+        <p>Complete a theory rehearsal and your progress will show up here.</p>
+        <div class="button-group" style="justify-content: center;">
+            <a href="/setup" class="btn btn-primary">Start New Interview</a>
+        </div>
+    </div>
+    {% elif progress.overall.points | length >= 2 %}
+    <h2 class="progress-section-title">Overall</h2>
+    {{ trend_chart(progress.overall) }}
+    {% else %}
+    <p class="trend-hint">Your first rehearsal scored {{ progress.overall.latest_display }} / 5. Complete one more to see your trend.</p>
+    {% endif %}
+</div>
+
+{% if progress.topics %}
+<h2 class="progress-section-title">By topic</h2>
+<div class="progress-topics">
+    {% for topic in progress.topics %}
+    <section class="card progress-topic" aria-labelledby="{{ topic.chart.chart_id }}-title">
+        <div class="progress-topic__header">
+            <div>
+                <h3 class="progress-topic__title" id="{{ topic.chart.chart_id }}-title">{{ topic.label }}</h3>
+                <p class="card-subtitle">{{ topic.session_count }} rehearsal{{ '' if topic.session_count == 1 else 's' }}</p>
+            </div>
+            {{ trend_summary(topic.chart) }}
+        </div>
+        {% if topic.chart.points | length >= 2 %}
+        {{ trend_chart(topic.chart) }}
+        {% else %}
+        <p class="trend-hint">1 rehearsal so far — practise {{ topic.label }} again to see a trend.</p>
+        {% endif %}
+        <table class="history-table progress-topic__categories">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Questions</th>
+                    <th>Average</th>
+                    <th>Latest</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in topic.categories %}
+                <tr>
+                    <td>{{ category.label }}</td>
+                    <td>{{ category.question_count }}</td>
+                    <td>{{ category.average_display }}</td>
+                    <td>{{ category.latest_display }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/progress_trend.js?v={{ static_version('js/progress_trend.js') }}"></script>
+{% endblock %}

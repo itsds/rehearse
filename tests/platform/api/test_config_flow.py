@@ -33,6 +33,10 @@ class TestFirstTimeConfigFlow:
                 "app.interview.queries.dashboard.DashboardBuilder.list_rows",
                 return_value=[],
             ),
+            patch(
+                "app.interview.queries.progress.ProgressTrends.overall_chart",
+                return_value=None,
+            ),
         ):
             response = client.get("/")
         assert response.status_code == 200

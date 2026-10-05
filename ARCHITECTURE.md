@@ -81,16 +81,19 @@ grillkit/
 │   │   │   ├── loader.py       # InterviewLoader (was InterviewQuery)
 │   │   │   ├── session_page.py # ActiveSessionPage
 │   │   │   ├── dashboard.py    # InterviewDashboard
+│   │   │   ├── progress.py     # ProgressTrends (first-answer score trends)
 │   │   │   ├── results_page.py # CompletedSessionResults
 │   │   │   ├── review_context.py
 │   │   │   └── projection.py
 │   │   └── support/
-│   │       ├── known_questions.py, bank_text.py
+│   │       ├── known_questions.py, bank_text.py, bank_topics.py
+│   │       ├── trend_chart.py  # Trend points → inline-SVG geometry
 │   │       ├── feedback_prefetch.py
 │   │       └── ai_errors.py
 │   │   └── api/
 │   │       ├── deps.py
 │   │       ├── dashboard.py    # GET /
+│   │       ├── progress.py     # GET /progress
 │   │       ├── setup.py        # GET/POST /setup, cascaded options
 │   │       ├── setup_form.py
 │   │       ├── routes.py       # GET /interview/{id}, question-audio
@@ -192,7 +195,8 @@ grillkit/
 
 | Method | Path | Module | Purpose |
 |--------|------|--------|---------|
-| GET | `/` | `interview/api/dashboard.py` | Interview history (last 20) |
+| GET | `/` | `interview/api/dashboard.py` | Progress trend card + interview history (last 20) |
+| GET | `/progress` | `interview/api/progress.py` | First-answer score trend overall and per track, category table per track |
 | GET | `/setup` | `interview/api/setup.py` | New interview form (redirects to `/config` if unset) |
 | POST | `/setup` | `interview/api/setup.py` | Create interview → redirect `/interview/{id}` |
 | GET | `/setup/options` | `interview/api/setup.py` | Cascaded JSON: theory tracks → levels → categories |
@@ -215,6 +219,12 @@ grillkit/
 | GET | `/interview/{interview_id}` | `interview/api/routes.py` | Active session page (theory and/or coding by phase); completed → redirect `/results` |
 | GET | `/interview/{interview_id}/results` | `interview/api/results.py` | Completed session hub: overall evaluation + section cards |
 | GET | `/interview/{interview_id}/theory` | `interview/api/results.py` | Theory review: chat history and section feedback (completed only) |
+| GET | `/interview/{interview_id}/theory/export.md` | `interview/api/results.py` | Blind Markdown transcript of the theory Q&A (no scores/feedback) |
+| POST | `/interview/{interview_id}/recordings/clips` | `recording/api/routes.py` | Upload one answer-round clip (multipart: `question_id`, `round`, `started_at`, `duration_ms`, `file`) |
+| POST | `/interview/{interview_id}/recordings/calibration` | `recording/api/routes.py` | Upload the gaze-calibration clip + `segments` JSON |
+| GET | `/interview/{interview_id}/recordings/manifest.json` | `recording/api/routes.py` | Rebuild and return the recording manifest |
+| GET | `/interview/{interview_id}/recordings/{filename}` | `recording/api/routes.py` | Serve a recorded video (range requests for seeking) |
+| DELETE | `/interview/{interview_id}/recordings` | `recording/api/routes.py` | Delete all of a session's recordings |
 | GET | `/interview/{interview_id}/coding` | `interview/api/results.py` | Coding review: per-task accordion with submits and feedback (completed only) |
 | GET | `/interview/{interview_id}/question-audio` | `interview/api/routes.py` | WAV for current theory task (`answer_id` query param) |
 | POST | `/interview/{interview_id}/theory/audio-answer` | `theory/api/routes.py` | Multipart WAV theory answer → NDJSON |
@@ -699,6 +709,54 @@ GET /interview/{id}/coding
 ```
 
 Dashboard history links to `/interview/{id}/results` for completed sessions.
+
+### Camera self-view
+
+`templates/_self_view.html` is included on active interview pages (theory sidebar, coding brief
+column) and driven by `static/js/self_view.js`. Camera on/off, recording on/off, "calibrated" and the
+preview size (`min` / `normal` / `max`) are stored per interview id in `localStorage`
+(`rehearse-session-media`, pruned after 30 days / 50 sessions), so a new session starts off and a
+refresh restores the same session; mirror is a global preference. The preview requests video only via
+`getUserMedia`; **Pop out** uses the browser Picture-in-Picture API. The camera is released on
+`pagehide`. `window.RehearseSelfView` (incl. `session` get/update) lets recording re-open the same
+stream with the microphone.
+
+### Interview recording (`app/recording/`)
+
+Opt-in per visit on the theory page (`static/js/recording.js`, "Record this rehearsal"). The first
+time it is ticked, a 10 s calibration clip is recorded (5 s looking at the camera, 5 s at the screen
+centre). Then one `MediaRecorder` clip per question round runs from `roundStart` (question or
+follow-up shown) to `roundEnd` (answer submitted, timer expired, interview ended); `interview.html`
+calls these hooks and waits on `flush()` before navigating away. Clips are uploaded to
+`recording/api/routes.py`; `SaveRecording` validates the round against the theory section (read-only
+UoW — no SQLite write lock while streaming to disk), and `RecordingStorage`
+(`shared/infrastructure/gateways/recording_storage.py`) writes atomically under
+`data/recordings/<interview_id>/`:
+
+```
+q01-r0.webm  q01-r0.meta.json     question order 1, main round
+q01-r1.webm  q01-r1.meta.json     its first follow-up
+calibration.webm  calibration.meta.json
+manifest.json                     version 1 — the contract for external tools
+```
+
+`manifest.json` (`recording/domain/models.py`) joins clips with question text and the final answer
+text; it never contains scores, feedback or rubric points. It is rebuilt after every upload and when
+the page flushes at the end of the session (`GET …/manifest.json`). The theory review page
+(`interview/api/results.py`) adds a player per recorded round and a **Delete recordings** button.
+Nothing is stored in the database, so there is no migration.
+
+### Progress trend
+
+`interview/queries/progress.py` (`ProgressTrends`) is computed at read time — nothing is stored.
+For each completed session it averages the **round-0 (first-answer) scores** of theory questions:
+follow-up rounds are only counted, a timed-out first answer counts as 0, unscored rounds and
+coding tasks are excluded. Each question is mapped to its bank track and category through the
+cached `support/bank_topics.py` index (levels merged: Kafka junior + senior → `kafka`); IDs missing
+from the banks fall back to the session's single track, else an "Unmapped" group. A question counts
+once in the overall trend and once in its own track. Pure math lives in
+`domain/rules/progress_trend.py`; `support/trend_chart.py` lays points out as inline-SVG geometry
+rendered by `templates/_trend_chart.html`, with hover/tooltip in `static/js/progress_trend.js`.
 
 ## Data Access Pattern
 

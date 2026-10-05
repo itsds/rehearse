@@ -15,6 +15,8 @@ from app.interview.api.deps import (
     CompletedSessionResultsDep,
     TheoryReviewServiceDep,
 )
+from app.recording.api.deps import RecordingMetadataDep
+from app.recording.queries.review_clips import review_recordings
 from app.templating import templates
 from app.theory.support.transcript_export import (
     render_theory_transcript,
@@ -55,6 +57,7 @@ async def theory_review_page(
     request: Request,
     interview_id: str,
     service: TheoryReviewServiceDep,
+    recordings: RecordingMetadataDep,
 ) -> Response:
     """Render the completed theory section review with chat history.
 
@@ -62,6 +65,7 @@ async def theory_review_page(
         request: FastAPI request object.
         interview_id: Session UUID.
         service: Theory review service for the request scope.
+        recordings: Recording metadata, for replaying recorded answers.
 
     Returns:
         HTML response with theory review, or redirect when unavailable.
@@ -74,7 +78,10 @@ async def theory_review_page(
     return templates.TemplateResponse(
         request,
         "theory_review.html",
-        context.model_dump(),
+        {
+            **context.model_dump(),
+            "recordings": review_recordings(recordings, interview_id),
+        },
     )
 
 

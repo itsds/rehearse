@@ -93,6 +93,32 @@ def load_recent_interview_reads(
         Composed interview read models with theory tasks when present.
     """
     shells = uow.interviews.list_recent_aggregates(limit=limit)
+    return _assemble_reads(uow, shells)
+
+
+def load_recent_completed_interview_reads(
+    uow: InterviewUnitOfWork,
+    *,
+    limit: int = 20,
+) -> list[InterviewRead]:
+    """Load the most recently completed interview read models, newest first.
+
+    Args:
+        uow: Active application unit of work.
+        limit: Maximum number of completed sessions to return.
+
+    Returns:
+        Composed read models for completed sessions only.
+    """
+    shells = uow.interviews.list_recent_aggregates(limit=limit, status="completed")
+    return _assemble_reads(uow, shells)
+
+
+def _assemble_reads(
+    uow: InterviewUnitOfWork,
+    shells: list[DomainInterview],
+) -> list[InterviewRead]:
+    """Batch-load sections for shells and compose read models in order."""
     if not shells:
         return []
     interview_ids = [shell.id for shell in shells]

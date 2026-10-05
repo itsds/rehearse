@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "_trend_chart.html" import trend_chart, trend_summary %}
 
 {% block title %}Dashboard - Rehearse{% endblock %}
 
@@ -19,6 +20,26 @@
         </div>
     </div>
 </div>
+
+{% if progress_trend %}
+<div class="card progress-trend-card">
+    <div class="card-header progress-trend-card__header">
+        <div>
+            <h2 class="card-title">Progress trend</h2>
+            <p class="card-subtitle">Average first-answer score per rehearsal (0–5), last 20 completed</p>
+        </div>
+        <div class="progress-trend-card__aside">
+            {{ trend_summary(progress_trend) }}
+            <a href="/progress" class="btn btn-outline btn-sm">View by topic &rarr;</a>
+        </div>
+    </div>
+    {% if progress_trend.points | length >= 2 %}
+    {{ trend_chart(progress_trend) }}
+    {% else %}
+    <p class="trend-hint">Your first rehearsal scored {{ progress_trend.latest_display }} / 5. Complete one more to see your trend.</p>
+    {% endif %}
+</div>
+{% endif %}
 
 {% if interview_history %}
 <div class="card interview-history-card">
@@ -59,5 +80,11 @@
         </table>
     </div>
 </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if progress_trend %}
+<script src="/static/js/progress_trend.js?v={{ static_version('js/progress_trend.js') }}"></script>
 {% endif %}
 {% endblock %}

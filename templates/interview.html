@@ -77,6 +77,11 @@
             </dl>
         </div>
 
+        {% if interview.status == "active" %}
+        {% set self_view_recording = true %}
+        {% include "_self_view.html" %}
+        {% endif %}
+
         <div class="interview-actions" id="sidebar-actions">
             <a href="/" class="btn btn-outline">Back to Dashboard</a>
             {% if interview.status == "active" %}
@@ -190,6 +195,10 @@
 {% block scripts %}
 {% if session_mode %}
 <script src="/static/js/session_phases.js?v={{ static_version('js/session_phases.js') }}"></script>
+{% if interview.status == "active" %}
+<script src="/static/js/self_view.js?v={{ static_version('js/self_view.js') }}"></script>
+<script src="/static/js/recording.js?v={{ static_version('js/recording.js') }}"></script>
+{% endif %}
 <script>
 window.grillkitSessionPhases = {{ {
     "sessionMode": session_mode,
@@ -232,6 +241,21 @@ window.grillkitCodingBootstrap = {
     window.isSubmitting = false;
     let evaluationWatchdogTimer = null;
 
+    // Opt-in recording (static/js/recording.js): one clip per question round.
+    window.grillkitCurrentRound = function () {
+        if (interviewFinished || !currentQuestionId || initialInterviewStatus !== 'active') return null;
+        return { questionId: currentQuestionId, round: currentRound };
+    };
+    function notifyRoundStart() {
+        if (window.RehearseRecording) window.RehearseRecording.roundStart(window.grillkitCurrentRound());
+    }
+    function notifyRoundEnd() {
+        if (window.RehearseRecording) window.RehearseRecording.roundEnd();
+    }
+    function flushRecordings() {
+        return window.RehearseRecording ? window.RehearseRecording.flush() : Promise.resolve();
+    }
+
     function stopQuestionTimer() {
         if (window.grillkitQuestionTimer) {
             window.grillkitQuestionTimer.stop();
@@ -244,6 +268,7 @@ window.grillkitCodingBootstrap = {
 
     window.grillkitOnTimerExpired = function () {
         if (isSubmitting) return;
+        notifyRoundEnd();
         isSubmitting = true;
         window.isSubmitting = true;
         enableForm(false);
@@ -394,6 +419,7 @@ window.grillkitCodingBootstrap = {
                 window.isSubmitting = false;
                 enableForm(true);
                 showError(data.message);
+                notifyRoundStart();  // answer rejected: the round is open again
                 break;
         }
     }
@@ -452,6 +478,7 @@ window.grillkitCodingBootstrap = {
             question_id: currentQuestionId,
             answer_text: answerText
         }));
+        notifyRoundEnd();
     }
 
     function endInterview() {
@@ -466,6 +493,7 @@ window.grillkitCodingBootstrap = {
         document.getElementById('end-btn') && (document.getElementById('end-btn').disabled = true);
         showEvaluating(true);
         startEvaluationWatchdog();
+        notifyRoundEnd();
 
         ws.send(JSON.stringify({ type: 'complete' }));
     }
@@ -565,6 +593,7 @@ window.grillkitCodingBootstrap = {
 
             currentQuestionId = data.question_id;
             currentRound = data.round + 1;
+            notifyRoundStart();
             isSubmitting = false;
             window.isSubmitting = false;
             enableForm(true);
@@ -579,6 +608,7 @@ window.grillkitCodingBootstrap = {
 
             currentQuestionId = nq.question_id;
             currentRound = nq.round != null ? nq.round : 0;
+            notifyRoundStart();
             updateProgressDisplay(nq.order);
             isSubmitting = false;
             window.isSubmitting = false;
@@ -598,7 +628,9 @@ window.grillkitCodingBootstrap = {
                     answerSection.innerHTML =
                         '<p class="composer-done text-muted">Theory section complete. Loading coding practice…</p>';
                 }
-                window.grillkitSessionPhaseNav.continueToNextPhase();
+                flushRecordings().finally(function () {
+                    window.grillkitSessionPhaseNav.continueToNextPhase();
+                });
                 return;
             }
             const answerSection = document.getElementById('answer-section');
@@ -612,7 +644,10 @@ window.grillkitCodingBootstrap = {
     }
 
     function handleSessionCompleted() {
-        window.location.href = '/interview/' + {{ interview.id | tojson }} + '/results';
+        // Let in-flight recording uploads finish before leaving the page.
+        flushRecordings().finally(function () {
+            window.location.href = '/interview/' + {{ interview.id | tojson }} + '/results';
+        });
     }
 
     function enableForm(enabled) {
@@ -653,6 +688,7 @@ window.grillkitCodingBootstrap = {
     window.grillkitSetSubmitting = function (value) {
         isSubmitting = value;
         window.isSubmitting = value;
+        if (value) notifyRoundEnd();  // spoken (WAV) answer submitted
     };
     window.grillkitShowAnswerBubble = showAnswerBubbleWithText;
 

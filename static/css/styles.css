@@ -2147,3 +2147,412 @@ textarea.form-control {
         grid-template-columns: 1fr;
     }
 }
+
+/* Progress trend charts (dashboard card + /progress page) */
+.progress-trend-card__header,
+.progress-topic__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.progress-trend-card__aside {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.trend-summary {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+.trend-summary__value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-summary__delta {
+    margin-left: 0.5rem;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-hint {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.trend-chart {
+    position: relative;
+    margin: 0 0 1.25rem;
+    /* viewBox units per CSS pixel; set by progress_trend.js so text and dots
+       keep a constant on-screen size however wide the chart renders. */
+    --trend-scale: 1;
+}
+
+.trend-chart__svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.trend-chart__grid {
+    stroke: var(--border-subtle);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.trend-chart__grid--base {
+    stroke: var(--border);
+}
+
+.trend-chart__axis {
+    fill: var(--text-muted);
+    font-size: calc(11px * var(--trend-scale));
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+}
+
+.trend-chart__crosshair {
+    stroke: var(--text-muted);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.trend-chart__crosshair.is-visible {
+    visibility: visible;
+}
+
+.trend-chart__line {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
+.trend-chart__point circle {
+    fill: var(--primary);
+    stroke: var(--surface);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+    r: calc(4.5px * var(--trend-scale));
+    transition: r var(--transition-fast);
+}
+
+.trend-chart__point.is-active circle,
+.trend-chart__point:focus-visible circle {
+    r: calc(6.5px * var(--trend-scale));
+}
+
+.trend-chart__point:focus-visible {
+    outline: none;
+}
+
+.trend-chart__point:focus-visible circle {
+    stroke: var(--text-primary);
+}
+
+.trend-chart__tooltip {
+    position: absolute;
+    transform: translate(-50%, calc(-100% - 12px));
+    min-width: 11rem;
+    max-width: 16rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.4;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.trend-chart__tooltip-date {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.trend-chart__tooltip-title,
+.trend-chart__tooltip-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.progress-section-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0.5rem 0 1rem;
+}
+
+.progress-topics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
+    gap: 1.5rem;
+}
+
+.progress-topic {
+    margin-bottom: 0;
+}
+
+.progress-topic__header {
+    margin-bottom: 0.75rem;
+}
+
+.progress-topic__title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.progress-topic__categories {
+    margin-top: 1rem;
+}
+
+.progress-topic__categories th,
+.progress-topic__categories td {
+    padding: 0.5rem 0.75rem;
+}
+
+/* Camera self-view (theory sidebar + coding brief column) */
+.self-view {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.coding-session__self-view {
+    flex: 0 0 auto;
+    margin: 0.375rem 0.75rem 0.75rem;
+}
+
+.self-view__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.self-view__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+}
+
+.self-view__frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    max-height: 13rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background-color: var(--editor-bg);
+    overflow: hidden;
+}
+
+.self-view__video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Mirrored like a mirror; the interviewer sees the un-mirrored image. */
+.self-view__video--mirrored {
+    transform: scaleX(-1);
+}
+
+.self-view__option {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.self-view__option input {
+    margin: 0 0.35rem 0 0;
+    vertical-align: -0.1em;
+}
+
+.self-view__hint {
+    display: block;
+    margin-left: 1.35rem;
+}
+
+.self-view__hint,
+.self-view__note {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.self-view__note {
+    margin: 0;
+}
+
+.self-view__status {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--warning-text);
+}
+
+/* Recorded answer replay (theory review page) */
+.answer-recording {
+    display: block;
+    width: 100%;
+    max-width: 32rem;
+    margin-top: 0.75rem;
+    border-radius: var(--radius);
+    background-color: var(--editor-bg);
+}
+
+/* Recording (theory page self-view) */
+.self-view__overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    text-align: center;
+    color: #fff;
+    background: rgb(0 0 0 / 0.55);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.self-view__overlay-count {
+    font-size: 1.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.self-view__record {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.self-view__rec {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.self-view__rec-dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background-color: var(--danger);
+    animation: self-view-rec-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes self-view-rec-pulse {
+    50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .self-view__rec-dot { animation: none; }
+}
+
+/* Self-view sizes: minimized / normal / maximized (floating) */
+.self-view__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+.self-view__size-btn {
+    flex: 1 1 auto;
+    padding: 0.2rem 0.45rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.self-view__size-btn:hover {
+    background-color: var(--surface-hover);
+}
+
+.self-view__size-btn[aria-pressed="true"] {
+    color: var(--text-primary);
+    background-color: var(--primary-soft);
+    border-color: var(--primary);
+}
+
+.self-view__minimized-note {
+    display: none;
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+}
+
+.self-view--min.self-view--on:not(.self-view--calibrating) .self-view__minimized-note {
+    display: block;
+}
+
+.self-view--min:not(.self-view--calibrating) .self-view__frame,
+.self-view--min:not(.self-view--calibrating) [data-self-view-mirror-row] {
+    display: none;
+}
+
+.self-view__restore {
+    display: none;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 50%;
+    color: #fff;
+    background: rgb(0 0 0 / 0.55);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* Maximized: a larger floating preview in the top-right corner, away from the
+   answer box. On narrow screens it stays docked at normal size. */
+@media (min-width: 901px) {
+    .self-view--max .self-view__frame {
+        position: fixed;
+        top: 5rem;
+        right: 1.5rem;
+        width: min(40rem, calc(100vw - 24rem));
+        max-height: none;
+        z-index: 60;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .self-view--max .self-view__restore {
+        display: block;
+    }
+}

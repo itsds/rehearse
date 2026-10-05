@@ -248,3 +248,11 @@ def minimal_config_saved(client):
 
 
 pytest_plugins = ["tests.shared.test_questions"]
+
+
+@pytest.fixture(autouse=True)
+def isolated_recordings_dir(tmp_path, monkeypatch):
+    """Point recording storage at a temp folder so tests never touch ``data/``."""
+    root = tmp_path / "recordings"
+    monkeypatch.setattr("app.recording.api.deps.RECORDINGS_DIR", root)
+    return root

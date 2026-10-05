@@ -1,4 +1,4 @@
-/plugin install coding-interview-agent@coding-interview-preparation-agents-marketplace# CLAUDE.md — Rehearse
+# CLAUDE.md — Rehearse
 
 Guidance for Claude (and any AI coding agent) working in this repository. Read this first, then
 [ARCHITECTURE.md](ARCHITECTURE.md) before touching application code.
@@ -119,6 +119,8 @@ app/
   coding/               CODING SECTION: YAML tasks, Monaco UI, Judge0 runs, WS submit, evaluator
   speech/               Whisper model status/download, dictation WebSocket
   question_voice/       Piper TTS status/download, question audio generation
+  recording/            opt-in interview video: per-round clip + calibration upload, manifest.json,
+                        serve/delete; storage gateway in shared/infrastructure/gateways/recording_storage.py
   platform/             /config page: AppConfig + ConfigService (data/config.json),
                         LLM catalog (data/llm_models.json), SpeechRuntimeCoordinator
   shared/               cross-cutting: paths, YAML loaders (questions.py, coding.py), locales,
@@ -215,6 +217,7 @@ data/
   config.json, llm_models.json                user config (gitignored — never commit, contain API keys)
   db/grillkit.db (+ -wal/-shm)                SQLite (gitignored)
   whisper-models/, piper-voices/, tts-cache/, .cache/   downloaded models + caches (gitignored)
+  recordings/<interview_id>/                  opt-in interview videos + manifest.json (gitignored + dockerignored)
 ```
 
 Terminology: **track** = bank slug (`kafka`, `system-design`), **level** = `junior|middle|senior`,
@@ -303,6 +306,11 @@ Never put `type: coding` rows in `data/questions/`.
 | Completion + overall feedback | `interview/use_cases/complete_session.py`, `interview/domain/session_evaluation.py`, `evaluation_aggregator.py` |
 | Results / review pages | `interview/api/results.py`, `*/queries/review_page.py`, `templates/session_results.html` |
 | Dashboard | `GET /` → `interview/queries/dashboard.py`, `templates/dashboard.html` |
+| Progress trend | `GET /` card + `GET /progress` → `interview/queries/progress.py`, `domain/rules/progress_trend.py`, `templates/_trend_chart.html` |
+| Export transcript | `GET /interview/{id}/theory/export.md` → `theory/support/transcript_export.py` |
+| Camera self-view | `templates/_self_view.html` (theory sidebar, coding brief) + `static/js/self_view.js` — browser-only; on/off, recording and size remembered per interview in `localStorage` (`rehearse-session-media`) |
+| Record answers | `static/js/recording.js` (hooks `roundStart`/`roundEnd`/`flush` called from `interview.html`) → `POST /interview/{id}/recordings/clips` → `recording/use_cases/save_recording.py` → `data/recordings/<id>/` + `manifest.json` |
+| Replay / delete recordings | Theory review page (`interview/api/results.py` + `recording/queries/review_clips.py`); `GET /interview/{id}/recordings/{file}`, `DELETE /interview/{id}/recordings` |
 
 ### How theory answers are scored today
 
@@ -324,7 +332,8 @@ Never put `type: coding` rows in `data/questions/`.
 
 - `tests/` mirrors `app/` — put a new test next to the matching package path.
 - Fixtures (`tests/conftest.py`): `client` (TestClient with speech runtime mocked), `isolated_db`
-  (in-memory SQLite, StaticPool), `fake_ai_provider`, `override_ws_ai_provider`.
+  (in-memory SQLite, StaticPool), `fake_ai_provider`, `override_ws_ai_provider`, and the autouse
+  `isolated_recordings_dir` (recordings go to a temp folder, never `data/recordings/`).
 - `tests/fakes.py` → `FakeProvider` + canned evaluation JSON. **Never call a real LLM, Whisper,
   Piper, Hugging Face or Judge0 in tests** — use fakes (`tests/helpers/fake_judge0.py`,
   `tests/helpers/transcription.py`).
@@ -339,7 +348,8 @@ Never put `type: coding` rows in `data/questions/`.
 - The image copies `app/`, `data/questions`, `templates/`, `static/`, `alembic/`. Python/template
   changes need `docker compose up --build`; YAML bank changes only need a container restart
   (they're read through the `./data` mount).
-- `.dockerignore` excludes `tests`, `*.md` (except README), `data/db`, `data/config.json`.
+- `.dockerignore` excludes `tests`, `*.md` (except README), `data/db`, `data/recordings`, `data/config.json`.
+- The camera (self-view, recording) only works on `localhost` or HTTPS — a browser rule, not a Docker one.
 - Healthcheck hits `http://127.0.0.1:8000/`.
 - Speech models and download progress are **per process** — run a single uvicorn worker.
 - Whisper on GPU needs the CUDA wheels in the image + compose `deploy.resources.reservations.devices`;
@@ -348,7 +358,10 @@ Never put `type: coding` rows in `data/questions/`.
 
 ## 12. Things not to do
 
-- Don't commit `data/config.json`, `data/llm_models.json`, `.env`, DB files, or downloaded models.
+- Don't commit `data/config.json`, `data/llm_models.json`, `.env`, DB files, downloaded models, or
+  anything under `data/recordings/` (videos of the owner's face).
+- Don't put Rehearse scores, feedback or rubric points into `manifest.json` or Export transcript —
+  both are deliberately blind.
 - Don't reset/delete the real SQLite DB or drop tables outside an Alembic migration.
 - Don't rename `grillkit` internals or the DB file outside the dedicated backlog task.
 - Don't add a second LLM SDK — extend `AIProvider` / `ProviderFactory` instead.
@@ -364,12 +377,11 @@ Never put `type: coding` rows in `data/questions/`.
 
 Priority themes, roughly in order: DE + leadership question banks → Staff-level rubric with
 Hire/No-Hire verdict ("Reflector", Pydantic structured output) → delivery metrics from Whisper word
-timestamps (pace, fillers, pauses) → "answer again" loop → progress trend chart on the dashboard →
-PySpark (AI-review only) and SQL (Judge0/SQLite) coding tasks → realtime streaming voice → optional
+timestamps (pace, fillers, pauses) → "answer again" loop → PySpark (AI-review only) and SQL (Judge0/SQLite) coding tasks → realtime streaming voice → optional
 Ollama fallback model → branding leftovers (favicon, DB rename).
 
-**Next planned session:** build the "Export transcript" option on the theory review page and
-design the owner's second-opinion Claude skill together (see §14).
+**Next planned session:** see **§15 Session handoff** — current branch state, the agreed plan for
+the separate video-review app (next), then delivery metrics.
 
 When implementing any of these, check TODO.md for the exact scope, keep the change self-contained
 in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and tick the item.
@@ -386,6 +398,7 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
      design rounds; installed as a Claude Code plugin in WSL and selectively uploaded to the Claude app.
      Not integrated into Rehearse.
 - Target workflow: **Export transcript** in Rehearse → run the second-opinion skill in the Claude app.
+  Both now exist: the export (theory review page) and the `rehearse-second-opinion` skill (created in Claude chat).
   Export = questions, follow-ups and answers as Markdown, **scores and feedback excluded** (avoid anchoring).
 - InterviewMentor's Novice/Intermediate/Expert scorecard is **not** used for the second opinion;
   revisit only if it proves valuable in practice.
@@ -394,6 +407,26 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
 - Later (Reflector): Claude could become an in-app judge via Anthropic's OpenAI-compatible endpoint
   (`https://api.anthropic.com/v1/`), which fits the existing `openai-compatible` adapter; needs a paid
   API key (separate from a Claude subscription).
+
+**2026-10-04 — camera and video**
+- Phase 1 **self-view** shipped: browser-only preview (`getUserMedia` video only), nothing stored.
+  Owner's rule: camera on/off, recording on/off and preview size are remembered **per interview
+  session** (keyed by interview id): a **new rehearsal always starts with the camera off**; a refresh
+  or return to the same rehearsal restores the choice. Mirror is a global preference. Sizes:
+  minimize (camera keeps running), normal, maximize (floating), pop out (picture-in-picture).
+  Recorded video is independent of preview size and mirror: always 1280×720, un-mirrored.
+- Phase 2 **recording** shipped (theory page only): opt-in ("Record this rehearsal", off for a new
+  rehearsal, resumed after a refresh; calibration once per rehearsal), one WebM clip per question round (question shown → answer submitted), a 10 s
+  calibration clip (5 s camera, 5 s screen centre), files under `data/recordings/<interview_id>/`
+  named `qNN-rR.webm`, no database tables. `manifest.json` **version 1** is a public contract for
+  external tools: add fields only, never rename/remove without a version bump; it never contains
+  scores, feedback or rubric points. Replay + delete live on the theory review page.
+- **Video analysis lives in a separate local app**, not in Rehearse: MediaPipe geometry (eye contact,
+  look-aways, framing, rough posture/fidgeting), CPU only, no LLM needed. A gaze-calibration clip is
+  required because the webcam sits above the screen.
+- **Not doing:** emotion / "confidence" reading from faces or holistic video-LLM judging — unreliable.
+- Delivery metrics (Whisper word timestamps) come after the video work, by the owner's choice; when
+  built, they stay separate from the technical score (rule 8).
 
 **Licensing notes (relevant before going private / commercial)**
 - Apache-2.0 (GrillKit) allows private use, modification and commercial sale without publishing source;
@@ -405,3 +438,61 @@ in the relevant feature package, add tests, update CHANGELOG `[Unreleased]`, and
   not usable commercially.
 - A GitHub fork cannot be made private; this repo's history suggests it is standalone — confirm before
   changing visibility. Not legal advice; get a full dependency licence review before selling.
+
+## 15. Session handoff (updated 2026-10-04 — read this first in a new session)
+
+### Where things stand
+- Branch `claude/confident-johnson-pvlkh4` is **5 commits ahead of `main`, not merged, no PR yet**:
+  progress trend + `/progress`, CLAUDE.md refresh, camera self-view, recording + replay, per-session
+  camera state + self-view sizes. All gates green (843 tests); the owner ran it locally — "working fine".
+- **First action:** confirm with the owner whether that PR is open/merged. Once merged, start any new
+  Rehearse work from fresh `main` (restart the branch; never stack on merged history).
+- Shipped and ticked in TODO.md: Export transcript (PR #4, merged), progress trend, camera self-view,
+  recording/replay, and the owner's `rehearse-second-opinion` Claude skill (created in Claude chat).
+
+### Next item: separate local video-review app (NOT inside Rehearse)
+- **Prerequisite:** the owner creates an empty GitHub repo for it (e.g. `rehearse-review`) and it is
+  added to the session. Ask for it before writing code.
+- **Input contract (read-only):** `data/recordings/<interview_id>/manifest.json` **v1** (models in
+  `app/recording/domain/models.py`), clips `qNN-rR.webm`, and `calibration.webm` whose segments are
+  camera 0–5 s, screen centre 5–10 s. Never write into the Rehearse data folder.
+- **Stack:** Python 3.12 + uv, MediaPipe Tasks (Apache-2.0: face landmarker with iris, pose, hands),
+  OpenCV/PyAV for decoding, Pydantic, Jinja2 HTML report. CPU only. **No LLM required** (an optional
+  local Ollama text summary is a later extra; a cloud API is the only thing that would cost money).
+- **MVP scope (agreed):** calibration-based gaze → % looking at screen/camera and look-away events
+  (≥ 2 s, direction down/side) · face-in-frame % · framing + lighting check · hand-to-face touches ·
+  per-session HTML report with a clickable "moments to watch" timeline (jump via video `#t=`).
+  **Later:** fidgeting, gestures, posture, trends across sessions, alignment with delivery metrics
+  (looked away during a long pause = thinking), optional local LLM summary.
+- **Pipeline:** decode 5–10 fps at ~640 px → per-frame features saved to Parquet (re-tune without
+  re-decoding) → personal baseline from the calibration clip → rolling-median smoothing, hysteresis,
+  minimum durations → per-answer / per-session aggregates → report. **Validation:** the owner
+  hand-marks 3–4 clips and thresholds are tuned until the app matches.
+- **Pitfalls:** glasses reflections, a second monitor (looks like "side"), backlight/dim rooms,
+  face-only framing (body metrics need shoulders in shot). Estimate: MVP ~3–5 sessions.
+- **Not doing:** emotion/"confidence" reading from faces, holistic video-LLM judging.
+
+### After that: delivery metrics (inside Rehearse)
+- The owner answers by **dictation** (the Groq model has no audio input), so hook the dictation
+  finalize path (`speech/`) and also the audio-answer path. faster-whisper `word_timestamps=True`.
+- Per answer round: time to first word (from pressing the mic), long pauses ≥ 2 s (count + longest),
+  pace in words/min (fillers excluded), fillers **um/uh/er/erm/hmm only** (ambiguous words like
+  "like"/"so" are not counted), answer duration. Store as a nullable JSON column on answers
+  (Alembic `0012`), show under each answer on the theory review page, **never** send to the evaluator
+  (rule 8). Later: trends on `/progress`, word timings added to `manifest.json` as new optional fields.
+- **Risk:** Whisper drops "um/uh" by default — needs an `initial_prompt` tweak; verify on the owner's
+  machine with their real voice before relying on it.
+- **Open question for the owner:** remove um/uh from the answer text after counting them?
+  (Recommended: yes.)
+
+### Other open TODO items from the camera work
+- Recording on the coding page (Phase 2 covers theory rounds only).
+
+### How the owner likes to work
+- New feature → short plan first (files + sample output), wait for OK; answer "how/why" questions in
+  plain language with tables or before/after examples before building.
+- Run all four quality gates; verify UI in a real browser (Playwright + Chromium fake camera at
+  `/opt/pw-browsers`) against a **throwaway DB in the scratchpad** — never `data/db/grillkit.db` —
+  and send screenshots. Delete demo files under `data/recordings/` afterwards.
+- Commit/push only when asked (on this branch the owner allowed direct commits); Conventional Commits;
+  update CHANGELOG, TODO, README, ARCHITECTURE and this file with every feature.
